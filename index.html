@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" id="metaTheme" content="#F7F3EE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PomoPal">
 <title>PomoPal</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><ellipse cx='23' cy='10' rx='8' ry='4.5' fill='%237CCCA6' transform='rotate(-22 23 10)'/><ellipse cx='41' cy='10' rx='8' ry='4.5' fill='%237CCCA6' transform='rotate(22 41 10)'/><circle cx='32' cy='37' r='25' fill='%23FF5A4D'/><path d='M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z' fill='%23FFF7F1'/><g stroke='%23FFF7F1' stroke-width='3.5' stroke-linecap='round'><path d='M53 37h-4'/><path d='M32 58v-4'/><path d='M11 37h4'/></g><g stroke='%232E1B2E' stroke-width='2.6' stroke-linecap='round' fill='none'><path d='M22.5 34q3 3.4 6 0'/><path d='M35.5 34q3 3.4 6 0'/><path d='M26 44q6 4.6 12 0'/></g></svg>">
 <script>document.documentElement.dataset.theme = (JSON.parse(localStorage.getItem("study.settings") || "{}").theme) || "light";</script>
@@ -109,6 +112,8 @@
     0%,100%{box-shadow:0 0 70px -22px var(--glow,var(--glow-a))}
     50%{box-shadow:0 0 110px -10px var(--glow,var(--glow-a))}
   }
+  #ring.cheer{animation:cheer .8s ease}
+  @keyframes cheer{0%,100%{transform:scale(1)}35%{transform:scale(1.035)}}
   #clock{font-family:var(--mono); font-weight:300; font-size:58px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
   #dots{display:flex; gap:10px; margin:24px 0 2px}
   #dots i{width:9px; height:9px; border-radius:50%; background:rgba(var(--sh),.12); transition:all .3s}
@@ -185,6 +190,7 @@
   }
   details[open] summary::after{transform:rotate(-135deg)}
   details summary:hover{color:var(--ink)}
+  details[open]>div, details[open]>form{animation:rise .28s ease}
   details>div, details>form{display:flex; flex-direction:column; align-items:center; gap:14px; padding:2px 20px 18px}
   #durations{display:flex; gap:22px; color:var(--dim); font-family:var(--sans); font-size:13px}
   #durations label{display:flex; flex-direction:column; gap:5px; align-items:center}
@@ -280,7 +286,13 @@
   .ghost{color:var(--faint); font-style:italic; font-size:14px}
   .x{all:unset; cursor:pointer; color:var(--dim); font-family:var(--mono); padding:12px 14px; margin:-8px -10px}
   .x:hover{color:var(--danger)}
-  .empty{color:var(--dim); font-style:italic; padding:24px 4px; text-align:center; border:none!important; background:none!important}
+  .empty{
+    color:var(--dim); font-style:italic; padding:30px 4px!important; text-align:center;
+    border:none!important; background:none!important; box-shadow:none!important;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .empty:hover{transform:none!important}
+  .empty svg{opacity:.85}
   .sec{font-family:var(--display); font-size:26px; font-weight:800; letter-spacing:-.01em; margin-bottom:4px}
   .sec b{color:var(--coral-bright); font-weight:inherit}
   .hint{font-family:var(--sans); font-size:13.5px; color:var(--dim); margin-bottom:18px}
@@ -288,15 +300,31 @@
   .toolrow .btn{font-size:11px; padding:8px 18px; color:var(--dim)}
 
   /* planner */
-  #planList input[type=checkbox]{accent-color:var(--coral-fill); width:16px; height:16px; cursor:pointer}
+  #planList input[type=checkbox]{
+    appearance:none; -webkit-appearance:none; width:22px; height:22px; flex:none; cursor:pointer;
+    border:2px solid var(--line); border-radius:50%; background:var(--panel);
+    display:grid; place-items:center; transition:all .18s;
+  }
+  #planList input[type=checkbox]:hover{border-color:var(--coral)}
+  #planList input[type=checkbox]:checked{background:var(--coral-fill); border-color:var(--coral-fill)}
+  #planList input[type=checkbox]:checked::after{
+    content:""; width:10px; height:5px; margin-top:-2px;
+    border-left:2.5px solid #fff; border-bottom:2.5px solid #fff; transform:rotate(-45deg);
+  }
+  li .grow{transition:color .3s}
   li.done .grow{text-decoration:line-through; color:var(--faint)}
   #planList li{cursor:grab}
   #planList li:active{cursor:grabbing}
+  #planList li.dragging{opacity:.45; transform:scale(.985)}
+  #planList li.dragOver{position:relative}
+  #planList li.dragOver::before{content:""; position:absolute; left:10px; right:10px; top:-7px; height:3px; border-radius:2px; background:var(--coral-bright)}
 
   /* goals */
   .bar{height:4px; background:var(--line); border-radius:2px; margin-top:8px; overflow:hidden}
   .bar>i{display:block; height:100%; background:var(--coral-bright); border-radius:2px; transition:width .25s}
   .bar>i.full{background:var(--mint-bright)}
+  .bar>i.pulse{animation:barPulse .9s ease}
+  @keyframes barPulse{0%,100%{box-shadow:none}40%{box-shadow:0 0 14px 2px var(--mint-bright)}}
   .step{all:unset; cursor:pointer; font-family:var(--mono); font-size:15px; color:var(--dim);
     border:1px solid var(--line); border-radius:6px; width:28px; height:28px; flex:none;
     display:inline-flex; align-items:center; justify-content:center}
@@ -305,16 +333,43 @@
   .mv{display:none} /* touch reorder arrows — drag stays the desktop interaction */
 
   /* history */
-  #histStats{font-family:var(--mono); font-size:13px; color:var(--dim); margin-bottom:16px; min-height:16px}
-  #histStats b{color:var(--coral); font-weight:500}
+  #histStats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px}
+  #histStats:empty{display:none}
+  #histStats .stat{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 16px;
+    display:flex; flex-direction:column; gap:1px; box-shadow:0 1px 2px rgba(var(--sh),.04), 0 10px 24px -18px rgba(var(--sh),.2);
+  }
+  #histStats .stat b{font-family:var(--display); font-size:22px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums}
+  #histStats .stat:first-child b{color:var(--coral)}
+  #histStats .stat span{font-size:11.5px; font-weight:500; color:var(--dim)}
+  #histList li.daysep, #histList li.daysep:hover{
+    background:none; border:none; box-shadow:none; transform:none; padding:12px 4px 0;
+    font-family:var(--sans); font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--faint);
+  }
   #histTools{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:4px}
   #histTools .search{font-family:var(--sans); font-size:14px; padding:9px 14px; min-width:180px}
   #histList li{flex-direction:column; align-items:stretch; gap:6px}
   #histList .top{display:flex; align-items:baseline; gap:14px}
   #histList .notes{color:var(--dim); font-size:15px; line-height:1.55; white-space:pre-wrap}
 
+  /* toast */
+  #toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:60;
+    display:flex; align-items:center; gap:14px; max-width:calc(100% - 32px);
+    background:var(--ink); color:var(--bg); border-radius:999px; padding:11px 20px;
+    font-size:14px; font-weight:500; white-space:nowrap;
+    box-shadow:0 14px 34px -8px rgba(0,0,0,.45); animation:rise .25s ease;
+  }
+  #toast[hidden]{display:none}
+  #toastBtn{
+    all:unset; cursor:pointer; font-size:12.5px; font-weight:600; padding:5px 14px;
+    border:1px solid rgba(128,128,128,.5); border-radius:999px; color:var(--coral-bright);
+  }
+  #toastBtn:hover{border-color:var(--coral-bright)}
+
   /* zen mode */
   body.zen{padding:0}
+  body.zen.idle, body.zen.idle *{cursor:none!important}
   body.zen header, body.zen nav, body.zen #todayCount, body.zen #taskRow,
   body.zen details, body.zen #shortcutHint{display:none}
   body.zen #timerCard{min-height:100vh; justify-content:center; padding:0}
@@ -361,7 +416,8 @@
     .pbtn{padding:12px 10px}
     .iconbtn{padding:8px 7px; font-size:17px}
     .chip{padding:8px 14px}
-    #planList input[type=checkbox], #toggles input{width:20px; height:20px}
+    #toggles input{width:20px; height:20px}
+    #histStats .stat b{font-size:19px}
   }
 </style>
 </head>
@@ -559,6 +615,11 @@
   </section>
 </main>
 
+<div id="toast" hidden role="status">
+  <span id="toastMsg"></span>
+  <button type="button" id="toastBtn" hidden>Undo</button>
+</div>
+
 <div id="tour" hidden>
   <div id="tourCard">
     <div id="tourStep"></div>
@@ -579,6 +640,24 @@ const load = (k, d) => JSON.parse(localStorage.getItem(k) ?? "null") ?? d;
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const uid = () => Math.random().toString(36).slice(2, 10);
+
+/* ---------- toast (with optional undo) + mascot empty states ---------- */
+let toastT;
+function toast(msg, undoFn) {
+  $("toastMsg").textContent = msg;
+  $("toastBtn").hidden = !undoFn;
+  $("toastBtn").onclick = () => { $("toast").hidden = true; undoFn?.(); };
+  $("toast").hidden = false;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => $("toast").hidden = true, 5000);
+}
+const TOMATO = '<svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true"><ellipse cx="23" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(-22 23 10)"/><ellipse cx="41" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(22 41 10)"/><circle cx="32" cy="37" r="25" fill="#FF5A4D"/><path d="M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z" fill="#FFF7F1"/><g stroke="#FFF7F1" stroke-width="3.5" stroke-linecap="round"><path d="M53 37h-4"/><path d="M32 58v-4"/><path d="M11 37h4"/></g><g stroke="#2E1B2E" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M22.5 34q3 3.4 6 0"/><path d="M35.5 34q3 3.4 6 0"/><path d="M26 44q6 4.6 12 0"/></g></svg>';
+function emptyState(text) {
+  const li = el("li", "empty");
+  li.innerHTML = TOMATO;
+  li.append(el("span", null, text));
+  return li;
+}
 
 $("today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 const todayKey = new Date().toDateString();
@@ -606,16 +685,30 @@ let goals = load("study.goals", []).map(g => g.unit ? g
 save("study.plan", plan); save("study.history", hist); save("study.goals", goals);
 
 /* ---------- header: theme, export, import ---------- */
+const syncMetaTheme = () => $("metaTheme").content = settings.theme === "dark" ? "#241726" : "#F7F3EE";
+syncMetaTheme();
 $("themeBtn").onclick = () => {
   settings.theme = settings.theme === "light" ? "dark" : "light";
   save("study.settings", settings);
   document.documentElement.dataset.theme = settings.theme;
+  syncMetaTheme();
 };
+/* installable on Android/Chrome via a blob manifest; iOS uses the apple-* metas instead */
+{
+  const m = el("link"); m.rel = "manifest";
+  m.href = URL.createObjectURL(new Blob([JSON.stringify({
+    name: "PomoPal", short_name: "PomoPal", display: "standalone", start_url: ".",
+    background_color: "#F7F3EE", theme_color: "#F7F3EE",
+    icons: [{ src: document.querySelector('link[rel=icon]').href, sizes: "any", type: "image/svg+xml" }],
+  })], { type: "application/json" }));
+  document.head.append(m);
+}
 const DATA_KEYS = ["study.subjects", "study.plan", "study.goals", "study.history", "study.settings", "study.todayN", "study.timer", "study.tab"];
 $("exportBtn").onclick = () => {
   const blob = new Blob([JSON.stringify(Object.fromEntries(DATA_KEYS.map(k => [k, load(k, null)])), null, 2)], { type: "application/json" });
   const a = el("a"); a.href = URL.createObjectURL(blob); a.download = "pomopal-backup.json";
   a.click(); URL.revokeObjectURL(a.href);
+  toast("Backup downloaded");
 };
 $("importBtn").onclick = () => $("importFile").click();
 $("importFile").onchange = async () => {
@@ -770,6 +863,8 @@ function finishPhase(live = true) {
   if (live) {
     chime();
     notify(phaseLabel[phase] + " — " + phaseMins() + " min");
+    $("ring").classList.add("cheer");
+    setTimeout(() => $("ring").classList.remove("cheer"), 900);
     if (settings.auto) return startTimer();
   }
   saveTimer(); renderTimer();
@@ -801,7 +896,14 @@ $("zenBtn").onclick = () => {
   }
 };
 document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement) document.body.classList.remove("zen");
+  if (!document.fullscreenElement) document.body.classList.remove("zen", "idle");
+});
+let idleT; // in zen, the cursor fades away after a few still seconds
+addEventListener("mousemove", () => {
+  if (!document.body.classList.contains("zen")) return;
+  document.body.classList.remove("idle");
+  clearTimeout(idleT);
+  idleT = setTimeout(() => document.body.classList.add("idle"), 3000);
 });
 addEventListener("keydown", e => {
   if (e.code === "Space" && !e.target.matches("input,textarea,button,select") && !e.target.isContentEditable && !$("tab-timer").hidden) {
@@ -999,12 +1101,17 @@ function renderPlan() {
   const ul = $("planList"); ul.replaceChildren();
   $("clearDone").hidden = !plan.some(p => p.done);
   renderTaskSel();
-  if (!plan.length) return ul.append(el("li", "empty", "Nothing planned yet — what's first?"));
+  if (!plan.length) return ul.append(emptyState("Nothing planned yet — what's first?"));
   plan.forEach((p, i) => {
     const li = el("li", p.done ? "done" : "");
     li.draggable = true;
-    li.ondragstart = () => dragI = i;
-    li.ondragover = e => e.preventDefault();
+    li.ondragstart = () => { dragI = i; li.classList.add("dragging"); };
+    li.ondragend = () => {
+      li.classList.remove("dragging");
+      for (const x of document.querySelectorAll("#planList .dragOver")) x.classList.remove("dragOver");
+    };
+    li.ondragover = e => { e.preventDefault(); if (dragI !== i) li.classList.add("dragOver"); };
+    li.ondragleave = () => li.classList.remove("dragOver");
     li.ondrop = e => {
       e.preventDefault();
       if (dragI == null || dragI === i) return;
@@ -1029,7 +1136,11 @@ function renderPlan() {
     up.disabled = i === 0; down.disabled = i === plan.length - 1;
     up.onclick = () => move(-1); down.onclick = () => move(1);
     const x = el("button", "x", "✕");
-    x.onclick = () => { plan.splice(i, 1); save("study.plan", plan); renderPlan(); };
+    x.onclick = () => {
+      const [rm] = plan.splice(i, 1);
+      save("study.plan", plan); renderPlan();
+      toast("Task deleted", () => { plan.splice(i, 0, rm); save("study.plan", plan); renderPlan(); });
+    };
     li.append(cb, body, up, down, x); ul.append(li);
   });
 }
@@ -1040,16 +1151,23 @@ $("planForm").onsubmit = e => {
   plan.push({ id: uid(), subjectId, text: $("planText").value.trim(), poms: +$("planPoms").value || 1, donePoms: 0, done: false });
   save("study.plan", plan); $("planText").value = ""; renderPlan();
 };
-$("clearDone").onclick = () => { plan = plan.filter(p => !p.done); save("study.plan", plan); renderPlan(); };
+$("clearDone").onclick = () => {
+  const before = plan;
+  plan = plan.filter(p => !p.done);
+  save("study.plan", plan); renderPlan();
+  toast("Done tasks cleared", () => { plan = before; save("study.plan", plan); renderPlan(); });
+};
 
 /* ---------- goals ---------- */
 const goalProgress = g => g.unit === "min"
   ? hist.filter(h => h.at >= (g.createdAt || 0) && (!g.subjectId || h.subjectId === g.subjectId)).reduce((s, h) => s + h.mins, 0)
   : g.current;
 $("goalUnit").onchange = () => $("goalSubjF").hidden = $("goalUnit").value !== "min";
+let doneGoals = null; // baseline of completed goal ids, so the bar pulses only on fresh completion
 function renderGoals() {
   const ul = $("goalList"); ul.replaceChildren();
-  if (!goals.length) return ul.append(el("li", "empty", "No goals yet — aim at something."));
+  const nowDone = new Set(goals.filter(g => goalProgress(g) >= g.target).map(g => g.id));
+  if (!goals.length) { doneGoals = nowDone; return ul.append(emptyState("No goals yet — aim at something.")); }
   goals.forEach((g, i) => {
     const li = el("li");
     const cur = goalProgress(g);
@@ -1067,10 +1185,17 @@ function renderGoals() {
     meta.onclick = () => { const t = +prompt("Target:", g.target); if (t > 0) { g.target = t; save("study.goals", goals); renderGoals(); } };
     const bar = el("div", "bar"), fill = el("i");
     fill.style.width = Math.min(100, cur / g.target * 100) + "%";
-    if (cur >= g.target) fill.className = "full";
+    if (cur >= g.target) {
+      fill.className = "full";
+      if (doneGoals && !doneGoals.has(g.id)) fill.classList.add("pulse");
+    }
     bar.append(fill); body.append(text, meta, bar);
     const x = el("button", "x", "✕");
-    x.onclick = () => { goals.splice(i, 1); save("study.goals", goals); renderGoals(); };
+    x.onclick = () => {
+      const [rm] = goals.splice(i, 1);
+      save("study.goals", goals); renderGoals();
+      toast("Goal deleted", () => { goals.splice(i, 0, rm); save("study.goals", goals); renderGoals(); });
+    };
     if (g.unit === "count") {
       const minus = el("button", "step", "−"), plus = el("button", "step", "+");
       minus.onclick = () => { g.current = Math.max(0, g.current - 1); save("study.goals", goals); renderGoals(); };
@@ -1079,6 +1204,7 @@ function renderGoals() {
     } else li.append(body, x);
     ul.append(li);
   });
+  doneGoals = nowDone;
 }
 $("goalForm").onsubmit = e => {
   e.preventDefault();
@@ -1097,7 +1223,7 @@ function renderChips() {
   const box = $("histChips"); box.replaceChildren();
   const ids = [...new Set(hist.map(h => h.subjectId).filter(Boolean))];
   if (!ids.length) return;
-  const all = el("button", "chip" + (filterSubj === null ? " on" : ""), "all"); all.type = "button";
+  const all = el("button", "chip" + (filterSubj === null ? " on" : ""), "All"); all.type = "button";
   all.onclick = () => { filterSubj = null; renderHist(); };
   box.append(all);
   for (const id of ids) {
@@ -1116,23 +1242,36 @@ function renderHist() {
   const weekMins = hist.filter(h => Date.now() - h.at < 7 * 86400000).reduce((s, h) => s + h.mins, 0);
   $("histStats").replaceChildren();
   if (hist.length) {
-    $("histStats").append("Today ", el("b", null, todayMins + " min"),
-      " · Last 7 days ", el("b", null, weekMins + " min"),
-      " · " + hist.length + " session" + (hist.length > 1 ? "s" : ""));
+    const stat = (val, lab) => { const c = el("div", "stat"); c.append(el("b", null, val), el("span", null, lab)); return c; };
+    $("histStats").append(stat(todayMins + "m", "Today"), stat(weekMins + "m", "Last 7 days"), stat(String(hist.length), "Sessions"));
   }
   const list = hist.filter(h =>
     (!filterSubj || h.subjectId === filterSubj) &&
     (!query || (histSubjName(h) + " " + (h.notes || "")).toLowerCase().includes(query)));
-  if (!list.length) return ul.append(el("li", "empty", hist.length ? "No matches" : "No sessions logged yet."));
+  if (!list.length) return ul.append(emptyState(hist.length ? "No matches." : "No sessions logged yet."));
+  const dayLabel = at => {
+    const k = new Date(at).toDateString();
+    if (k === todayKey) return "Today";
+    if (k === new Date(Date.now() - 86400000).toDateString()) return "Yesterday";
+    return new Date(at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  };
+  let lastDay = null;
   for (const h of list) {
+    const dk = new Date(h.at).toDateString();
+    if (dk !== lastDay) { lastDay = dk; ul.append(el("li", "daysep", dayLabel(h.at))); }
     const li = el("li");
     const top = el("div", "top");
     const subj = el("div", "grow srow");
     const dot = el("i", "dot"); dot.style.background = subjById(h.subjectId)?.color ?? "var(--faint)";
     subj.append(dot, el("span", null, histSubjName(h)));
-    const meta = el("span", "meta", new Date(h.at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " · " + h.mins + " min" + (h.auto ? " · pomodoro" : ""));
+    const meta = el("span", "meta", new Date(h.at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) + " · " + h.mins + " min" + (h.auto ? " · pomodoro" : ""));
     const x = el("button", "x", "✕");
-    x.onclick = () => { hist.splice(hist.indexOf(h), 1); save("study.history", hist); renderHist(); renderGoals(); };
+    x.onclick = () => {
+      const idx = hist.indexOf(h);
+      hist.splice(idx, 1);
+      save("study.history", hist); renderHist(); renderGoals();
+      toast("Session deleted", () => { hist.splice(idx, 0, h); save("study.history", hist); renderHist(); renderGoals(); });
+    };
     top.append(subj, meta, x); li.append(top);
     const notes = el("div", "notes");
     editableText(notes, () => h.notes, v => { h.notes = v; save("study.history", hist); }, "+ Notes");
