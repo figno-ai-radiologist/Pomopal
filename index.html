@@ -109,9 +109,33 @@
   #dots i{width:9px; height:9px; border-radius:50%; background:rgba(var(--sh),.12); transition:all .3s}
   #dots i.done{background:var(--coral-bright); box-shadow:0 0 8px var(--glow-a)}
   #todayCount{font-family:var(--sans); font-size:13px; color:var(--dim); min-height:17px}
-  #taskRow{display:flex; align-items:center; gap:10px; margin:12px 0 2px; font-family:var(--sans); font-size:13px; color:var(--dim)}
-  #taskRow select{max-width:250px}
-  .btnrow{display:flex; gap:12px; margin:16px 0 10px}
+  #taskRow{
+    display:flex; align-items:center; gap:12px; margin:16px 0 4px; padding:10px 20px;
+    width:100%; max-width:340px; background:var(--panel); border:1px solid var(--line);
+    border-radius:999px; box-shadow:0 1px 2px rgba(var(--sh),.05), 0 8px 20px -16px rgba(var(--sh),.25);
+  }
+  #taskRow .ic{color:var(--coral); flex:none}
+  #taskRow .twrap{display:flex; flex-direction:column; flex:1; min-width:0}
+  #taskRow .twrap>span{font-family:var(--sans); font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
+  #taskRow select{border:none; background:transparent; box-shadow:none; padding:2px 0; width:100%;
+    font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ink); cursor:pointer}
+  .btnrow{display:flex; align-items:center; justify-content:space-between; width:100%; max-width:340px; margin:16px 0 10px}
+  .cbtn{
+    all:unset; cursor:pointer; width:44px; height:44px; border-radius:50%; flex:none;
+    border:1px solid var(--line); background:var(--panel); color:var(--dim);
+    display:inline-flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 2px rgba(var(--sh),.06); transition:all .15s;
+  }
+  .cbtn:hover{color:var(--coral); transform:translateY(-1px); box-shadow:0 5px 12px -5px rgba(var(--sh),.25)}
+  .cbtn:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
+  #startBtn{display:inline-flex; align-items:center; gap:9px; padding:15px 32px; font-size:15px}
+  #startBtn.playing .icp{display:none}
+  #startBtn:not(.playing) .ics{display:none}
+  #timerCard{position:relative}
+  #zenBtn{position:absolute; top:0; left:0}
+  #zenBtn .ex{display:none}
+  body.zen #zenBtn .fs{display:none}
+  body.zen #zenBtn .ex{display:inline}
   .btn{
     all:unset; cursor:pointer; font-family:var(--sans); font-size:14px; font-weight:500; padding:11px 26px;
     border:1px solid var(--line); border-radius:999px; color:var(--ink); white-space:nowrap;
@@ -317,10 +341,7 @@
     #clock, body.zen #clock{font-size:44px}
     #durations{gap:14px}
     #shortcutHint{display:none}
-    #taskRow select{max-width:180px}
-    /* main controls: labels never wrap inside a pill; the row wraps cleanly instead */
-    .btnrow{gap:8px; flex-wrap:wrap; justify-content:center}
-    .btnrow .btn{padding:11px 15px}
+    #startBtn{padding:14px 22px; font-size:14px}
     /* 16px floor on form controls so iOS doesn't auto-zoom on focus */
     select, input[type=date], form.add input[type=number], #durations input, #ytForm input, #histTools .search{font-size:16px}
     /* comfortable tap targets */
@@ -374,13 +395,26 @@
       </div>
       <div id="dots"><i></i><i></i><i></i><i></i></div>
       <div id="todayCount"></div>
-      <div id="taskRow"><span>Working on</span><select id="taskSel"></select></div>
-      <div class="btnrow">
-        <button class="btn primary" id="startBtn">Start focus</button>
-        <button class="btn" id="resetBtn">Reset</button>
-        <button class="btn" id="skipBtn">Skip</button>
-        <button class="btn" id="zenBtn">Zen</button>
+      <div id="taskRow">
+        <svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+        <div class="twrap">
+          <span>Working on</span>
+          <select id="taskSel"></select>
+        </div>
       </div>
+      <div class="btnrow">
+        <button class="cbtn" id="resetBtn" title="Reset" aria-label="Reset timer"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 2.97-2.17 5.43-5 5.91v2.02c3.95-.49 7-3.85 7-7.93 0-4.42-3.58-8-8-8zm-6 8c0-1.65.67-3.15 1.76-4.24L6.34 7.34C4.9 8.79 4 10.79 4 13c0 4.08 3.05 7.44 7 7.93v-2.02c-2.83-.48-5-2.94-5-5.91z"/></svg></button>
+        <button class="btn primary" id="startBtn">
+          <svg class="icp" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="ics" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          <span id="startLbl">Start focus</span>
+        </button>
+        <button class="cbtn" id="skipBtn" title="Skip phase" aria-label="Skip phase"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg></button>
+      </div>
+      <button class="cbtn" id="zenBtn" title="Fullscreen" aria-label="Toggle fullscreen focus mode">
+        <svg class="fs" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        <svg class="ex" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+      </button>
 
       <details id="settingsBox">
         <summary>Settings</summary>
@@ -692,7 +726,8 @@ function renderTimer() {
   $("ring").classList.toggle("running", running);
   [...$("dots").children].forEach((d, i) => d.classList.toggle("done", i < cycles));
   $("todayCount").textContent = todayN.n ? todayN.n + " session" + (todayN.n > 1 ? "s" : "") + " done today" : "";
-  $("startBtn").textContent = running ? "Pause" : !focus ? "Take a break" : cycles ? "Back to focus" : "Start focus";
+  $("startLbl").textContent = running ? "Pause" : !focus ? "Take a break" : cycles ? "Back to focus" : "Start focus";
+  $("startBtn").classList.toggle("playing", running);
   document.title = running ? fmt(remaining) + " · " + phaseLabel[phase] : "PomoPal";
 }
 function stop_() { running = false; clearInterval(tickId); }
@@ -750,10 +785,9 @@ $("zenBtn").onclick = () => {
     document.body.classList.add("zen");
     document.documentElement.requestFullscreen?.().catch(() => {});
   }
-  $("zenBtn").textContent = document.body.classList.contains("zen") ? "Exit" : "Zen";
 };
 document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement) { document.body.classList.remove("zen"); $("zenBtn").textContent = "Zen"; }
+  if (!document.fullscreenElement) document.body.classList.remove("zen");
 });
 addEventListener("keydown", e => {
   if (e.code === "Space" && !e.target.matches("input,textarea,button,select") && !e.target.isContentEditable && !$("tab-timer").hidden) {
@@ -1121,7 +1155,7 @@ renderTimer();
 
 /* ---------- guide (first run; ? in the header reopens; skippable via button, Esc, or backdrop) ---------- */
 const TOUR = [
-  { tab: "timer", sel: "#ring", h: "The timer", p: "Classic pomodoro: 25 min focus, 5 min break, a long one after four rounds. Space starts and pauses. Zen goes fullscreen — durations are in Settings below." },
+  { tab: "timer", sel: "#ring", h: "The timer", p: "Classic pomodoro: 25 min focus, 5 min break, a long one after four rounds. Space starts and pauses. The corner buttons reset and skip; top-left goes fullscreen. Durations are in Settings below." },
   { tab: "timer", sel: "#taskRow", h: "Link your work", p: "Pick a planned task under “Working on” — every finished focus session logs itself to history and ticks that task's pomodoro count." },
   { tab: "timer", sel: "#musicBox", h: "Sound & music", p: "Ambience generates rain or deep noise. Focus music searches YouTube and plays it audio-only with a real player — seek, skip, volume. Try the preset chips." },
   { tab: "plan", sel: "#planForm", h: "The planner", p: "Your plan for today — the timer works through this list. Add a subject and a pomodoro estimate; drag to reorder (arrow buttons on touch), check items off as you finish." },
