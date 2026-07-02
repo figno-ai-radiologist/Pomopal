@@ -20,7 +20,8 @@
     --mint-bright:#7CCCA6;  /* decorative break/done fills */
     --danger:#B3372F;
     --btn-ink:#FFFFFF;
-    --glow-a:rgba(255,90,77,.20); --glow-t:rgba(124,204,166,.30);
+    --glow-a:rgba(255,90,77,.16); --glow-t:rgba(124,204,166,.22);
+    --sh:46,27,46; /* shadow tint (plum) */
     --display:"Nunito", "Inter", sans-serif;
     --sans:"Inter", system-ui, sans-serif;
     --mono:"IBM Plex Mono", ui-monospace, monospace;
@@ -33,13 +34,16 @@
     --mint:#7CCCA6; --mint-bright:#7CCCA6;
     --danger:#FF8A7E;
     --btn-ink:#FFFFFF;
-    --glow-a:rgba(255,90,77,.35); --glow-t:rgba(124,204,166,.28);
+    --glow-a:rgba(255,90,77,.28); --glow-t:rgba(124,204,166,.2);
+    --sh:0,0,0;
   }
   *{box-sizing:border-box; margin:0}
   html,body{min-height:100%}
   body{
-    background:var(--bg) radial-gradient(ellipse 900px 500px at 50% -10%, var(--glow-a), transparent);
-    background-blend-mode:soft-light;
+    background:
+      radial-gradient(900px 480px at 15% -10%, var(--glow-a), transparent 62%),
+      radial-gradient(760px 460px at 110% 8%, var(--glow-t), transparent 60%),
+      var(--bg);
     color:var(--ink); font-family:var(--sans); font-weight:400; font-size:16px; line-height:1.45;
     display:flex; flex-direction:column; align-items:center;
     padding:0 20px 60px;
@@ -53,59 +57,75 @@
     *, *::before, *::after{animation:none!important; transition:none!important; scroll-behavior:auto!important}
   }
   header{width:100%; max-width:680px; padding:34px 0 22px; display:flex; align-items:center; justify-content:space-between; animation:rise .45s .05s ease-out backwards}
-  header h1{font-family:var(--display); font-size:23px; font-weight:800; letter-spacing:.01em; display:flex; align-items:center; gap:9px}
-  header h1 svg{flex:none}
+  header h1{font-family:var(--display); font-size:24px; font-weight:800; letter-spacing:.01em; display:flex; align-items:center; gap:10px}
+  header h1 svg{flex:none; filter:drop-shadow(0 3px 6px rgba(255,90,77,.28))}
   header h1 b{color:var(--coral-bright); font-weight:inherit}
-  #hdrRight{display:flex; align-items:baseline; gap:16px}
-  #today{font-family:var(--sans); font-size:13px; color:var(--dim)}
-  .iconbtn{all:unset; cursor:pointer; font-family:var(--sans); font-size:15px; color:var(--dim); padding:2px 4px}
-  .iconbtn:hover{color:var(--coral)}
+  #hdrRight{display:flex; align-items:center; gap:10px}
+  #today{font-family:var(--sans); font-size:12.5px; font-weight:500; color:var(--dim);
+    background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px; padding:6px 14px}
+  .iconbtn{all:unset; cursor:pointer; font-family:var(--sans); font-size:15px; color:var(--dim);
+    width:34px; height:34px; text-align:center; line-height:34px; border-radius:50%;
+    border:1px solid var(--line); background:var(--panel); box-shadow:0 1px 2px rgba(var(--sh),.06); transition:all .15s}
+  .iconbtn:hover{color:var(--coral); transform:translateY(-1px); box-shadow:0 4px 10px -4px rgba(var(--sh),.2)}
 
-  nav{width:100%; max-width:680px; display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:30px; animation:rise .45s .12s ease-out backwards}
+  nav{width:100%; max-width:680px; display:flex; gap:2px; padding:4px; margin-bottom:30px;
+    background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px;
+    animation:rise .45s .12s ease-out backwards}
   nav button{
-    all:unset; cursor:pointer; padding:10px 16px; font-family:var(--sans); font-size:14px; font-weight:500;
-    color:var(--dim); border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .15s;
+    all:unset; cursor:pointer; flex:1; text-align:center; padding:10px 8px; border-radius:999px;
+    font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--dim); transition:all .2s;
   }
   nav button:hover{color:var(--ink)}
-  nav button[aria-selected="true"]{color:var(--coral); border-bottom-color:var(--coral)}
+  nav button[aria-selected="true"]{
+    color:var(--coral); background:var(--panel);
+    box-shadow:0 1px 3px rgba(var(--sh),.1), 0 5px 14px -6px rgba(var(--sh),.18);
+  }
 
   main{width:100%; max-width:680px; animation:rise .45s .2s ease-out backwards}
   section[hidden]{display:none}
 
   /* ---------- timer ---------- */
-  #timerCard{display:flex; flex-direction:column; align-items:center; padding:24px 0 8px}
-  #phase{font-family:var(--sans); font-weight:600; font-size:13px; letter-spacing:.3em; text-transform:uppercase; color:var(--coral); margin-bottom:26px; transition:color .3s}
+  #timerCard{display:flex; flex-direction:column; align-items:center; padding:20px 0 8px}
+  #phase{font-family:var(--sans); font-weight:600; font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:var(--coral); transition:color .3s}
   #phase.break{color:var(--mint)}
-  #ring{
-    width:280px; height:280px; border-radius:50%; display:grid; place-items:center;
-    background:conic-gradient(var(--ring-color,var(--coral-bright)) calc(var(--p,0)*1%), var(--line) 0);
-    transition:background .3s, box-shadow .8s;
+  #ring{position:relative; width:300px; height:300px; border-radius:50%; transition:box-shadow .8s}
+  #ring svg{width:100%; height:100%; transform:rotate(-90deg)}
+  #ring .track{fill:none; stroke:rgba(var(--sh),.09); stroke-width:5.5}
+  #ring .prog{fill:none; stroke:url(#gradFocus); stroke-width:5.5; stroke-linecap:round;
+    stroke-dasharray:var(--p,0) 100; transition:stroke-dasharray .3s linear}
+  #ring:has(.break) .prog{stroke:url(#gradBreak)}
+  #ring .face{
+    position:absolute; inset:9.5%; border-radius:50%; background:var(--panel);
+    box-shadow:0 2px 6px rgba(var(--sh),.06), 0 22px 48px -20px rgba(var(--sh),.25), inset 0 0 0 1px var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
   }
   #ring.running{animation:breathe 4s ease-in-out infinite}
   @keyframes breathe{
     0%,100%{box-shadow:0 0 70px -22px var(--glow,var(--glow-a))}
-    50%{box-shadow:0 0 110px -12px var(--glow,var(--glow-a))}
+    50%{box-shadow:0 0 110px -10px var(--glow,var(--glow-a))}
   }
-  #ring>div{
-    width:262px; height:262px; border-radius:50%; background:var(--panel);
-    display:grid; place-items:center; box-shadow:inset 0 0 40px rgba(0,0,0,.25);
-  }
-  #clock{font-family:var(--mono); font-weight:300; font-size:62px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+  #clock{font-family:var(--mono); font-weight:300; font-size:58px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
   #dots{display:flex; gap:10px; margin:24px 0 2px}
-  #dots i{width:8px; height:8px; border-radius:50%; background:var(--line); transition:background .3s}
-  #dots i.done{background:var(--coral-bright)}
+  #dots i{width:9px; height:9px; border-radius:50%; background:rgba(var(--sh),.12); transition:all .3s}
+  #dots i.done{background:var(--coral-bright); box-shadow:0 0 8px var(--glow-a)}
   #todayCount{font-family:var(--sans); font-size:13px; color:var(--dim); min-height:17px}
   #taskRow{display:flex; align-items:center; gap:10px; margin:12px 0 2px; font-family:var(--sans); font-size:13px; color:var(--dim)}
   #taskRow select{max-width:250px}
   .btnrow{display:flex; gap:12px; margin:16px 0 10px}
   .btn{
     all:unset; cursor:pointer; font-family:var(--sans); font-size:14px; font-weight:500; padding:11px 26px;
-    border:1px solid var(--line); border-radius:999px; color:var(--ink); transition:all .15s; white-space:nowrap;
+    border:1px solid var(--line); border-radius:999px; color:var(--ink); white-space:nowrap;
+    background:var(--panel); box-shadow:0 1px 2px rgba(var(--sh),.06);
+    transition:transform .15s, box-shadow .15s, border-color .15s, filter .15s;
   }
-  .btn:hover{border-color:var(--dim)}
+  .btn:hover{transform:translateY(-1px); box-shadow:0 5px 12px -5px rgba(var(--sh),.22)}
+  .btn:active{transform:translateY(0); box-shadow:0 1px 2px rgba(var(--sh),.06)}
   .btn:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
-  .btn.primary{background:var(--coral-fill); border-color:var(--coral-fill); color:var(--btn-ink); font-weight:600}
-  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.primary{
+    background:var(--coral-fill); border-color:var(--coral-fill); color:var(--btn-ink); font-weight:600;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 6px 16px -6px rgba(217,58,49,.55);
+  }
+  .btn.primary:hover{filter:brightness(1.06); box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 9px 20px -6px rgba(217,58,49,.6)}
 
   select, input[type=date]{
     background:var(--panel2); border:1px solid var(--line); border-radius:8px;
@@ -113,14 +133,24 @@
   }
   input[type=range]{accent-color:var(--coral-fill); width:100px}
 
-  details{width:100%; max-width:560px; margin-top:10px}
+  details{
+    width:100%; max-width:560px; margin-top:12px;
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 1px 2px rgba(var(--sh),.04), 0 12px 28px -20px rgba(var(--sh),.2);
+  }
   details summary{
-    cursor:pointer; list-style:none; text-align:center; font-family:var(--sans); font-weight:500;
-    font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); padding:9px;
+    cursor:pointer; list-style:none; display:flex; align-items:center; font-family:var(--sans); font-weight:600;
+    font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); padding:15px 20px;
   }
   details summary::-webkit-details-marker{display:none}
-  details summary:hover, details[open] summary{color:var(--dim)}
-  details>div, details>form{display:flex; flex-direction:column; align-items:center; gap:14px; padding:6px 0 14px}
+  details summary::after{
+    content:""; width:7px; height:7px; margin-left:auto; flex:none;
+    border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor;
+    transform:rotate(45deg); transition:transform .2s;
+  }
+  details[open] summary::after{transform:rotate(-135deg)}
+  details summary:hover{color:var(--ink)}
+  details>div, details>form{display:flex; flex-direction:column; align-items:center; gap:14px; padding:2px 20px 18px}
   #durations{display:flex; gap:22px; color:var(--dim); font-family:var(--sans); font-size:13px}
   #durations label{display:flex; flex-direction:column; gap:5px; align-items:center}
   #durations input{
@@ -133,8 +163,10 @@
   #ytForm{flex-direction:row!important; width:100%; padding-bottom:4px!important}
   #ytForm input{flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:8px; color:var(--ink); font-family:var(--sans); font-size:14px; padding:10px 14px}
   #ytForm input:focus-visible{outline:none; border-color:var(--coral)}
-  #ytResults{width:100%; display:flex; flex-direction:column; max-height:264px; overflow-y:auto; border:1px solid var(--line); border-radius:10px; background:var(--panel)}
+  #ytResults{width:100%; display:flex; flex-direction:column; max-height:264px; overflow-y:auto; border:1px solid var(--line); border-radius:12px; background:var(--panel)}
   #ytResults:empty{display:none}
+  #ytResults::-webkit-scrollbar{width:8px}
+  #ytResults::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
   .trk{all:unset; cursor:pointer; display:flex; gap:12px; align-items:baseline; padding:11px 14px; font-family:var(--sans); font-size:13px; color:var(--dim); border-bottom:1px solid var(--line)}
   .trk .d{font-family:var(--mono)}
   .trk:last-child{border-bottom:none}
@@ -144,7 +176,9 @@
   .trk .d{color:var(--faint); flex:none}
   .trk.playing .t, .trk.playing{color:var(--coral)}
   .trk a{color:var(--coral)}
-  #player{width:100%; display:flex; flex-direction:column; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:10px 14px}
+  #player{width:100%; display:flex; flex-direction:column; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px 14px;
+    box-shadow:0 1px 2px rgba(var(--sh),.05), 0 12px 26px -18px rgba(var(--sh),.25)}
+  #npArt{width:42px; height:42px; border-radius:10px; object-fit:cover; flex:none; box-shadow:0 3px 8px -2px rgba(var(--sh),.3)}
   #pRow1, #pRow2{display:flex; align-items:center; gap:10px}
   #pRow2{flex-wrap:wrap}
   .pbtn{all:unset; cursor:pointer; color:var(--dim); font-size:13px; padding:4px}
@@ -165,12 +199,13 @@
 
   .chips{display:flex; gap:8px; flex-wrap:wrap}
   .chip{
-    all:unset; cursor:pointer; font-family:var(--sans); font-weight:500; font-size:12px; padding:5px 12px;
-    border:1px solid var(--line); border-radius:999px; color:var(--dim);
-    display:inline-flex; align-items:center; gap:6px;
+    all:unset; cursor:pointer; font-family:var(--sans); font-weight:500; font-size:12px; padding:6px 13px;
+    border:1px solid var(--line); border-radius:999px; color:var(--dim); background:var(--panel);
+    box-shadow:0 1px 2px rgba(var(--sh),.05);
+    display:inline-flex; align-items:center; gap:6px; transition:all .15s;
   }
-  .chip:hover{color:var(--ink)}
-  .chip.on{border-color:var(--coral); color:var(--ink)}
+  .chip:hover{color:var(--ink); transform:translateY(-1px); box-shadow:0 4px 8px -4px rgba(var(--sh),.2)}
+  .chip.on{border-color:var(--coral); color:var(--coral); background:var(--panel2); font-weight:600}
   .dot{width:8px; height:8px; border-radius:50%; display:inline-block; flex:none}
 
   /* ---------- shared list ui ---------- */
@@ -193,10 +228,13 @@
   form.add button{white-space:nowrap}
   ul.items{list-style:none; display:flex; flex-direction:column; gap:10px; margin-top:14px}
   ul.items li{
-    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
     padding:14px 16px; display:flex; align-items:center; gap:14px;
+    box-shadow:0 1px 2px rgba(var(--sh),.04), 0 10px 24px -18px rgba(var(--sh),.22);
+    transition:transform .15s, box-shadow .15s;
     animation:rise .3s ease backwards;
   }
+  ul.items li:hover{transform:translateY(-1px); box-shadow:0 2px 4px rgba(var(--sh),.05), 0 14px 30px -16px rgba(var(--sh),.28)}
   ul.items li .grow{flex:1; min-width:0; overflow-wrap:break-word}
   .srow{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
   .detail{color:var(--dim); font-size:15px}
@@ -208,7 +246,9 @@
   .x{all:unset; cursor:pointer; color:var(--dim); font-family:var(--mono); padding:12px 14px; margin:-8px -10px}
   .x:hover{color:var(--danger)}
   .empty{color:var(--dim); font-style:italic; padding:24px 4px; text-align:center; border:none!important; background:none!important}
-  .hint{font-family:var(--sans); font-size:13px; color:var(--dim); margin-bottom:14px}
+  .sec{font-family:var(--display); font-size:26px; font-weight:800; letter-spacing:-.01em; margin-bottom:4px}
+  .sec b{color:var(--coral-bright); font-weight:inherit}
+  .hint{font-family:var(--sans); font-size:13.5px; color:var(--dim); margin-bottom:18px}
   .toolrow{display:flex; justify-content:flex-end; gap:10px; margin-top:14px}
   .toolrow .btn{font-size:11px; padding:8px 18px; color:var(--dim)}
 
@@ -243,18 +283,17 @@
   body.zen header, body.zen nav, body.zen #todayCount, body.zen #taskRow,
   body.zen details, body.zen #shortcutHint{display:none}
   body.zen #timerCard{min-height:100vh; justify-content:center; padding:0}
-  body.zen #ring{width:340px; height:340px}
-  body.zen #ring>div{width:318px; height:318px}
-  body.zen #clock{font-size:76px}
+  body.zen #ring{width:360px; height:360px}
+  body.zen #clock{font-size:72px}
 
   /* tour */
-  #tour{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.55); backdrop-filter:blur(2px);
+  #tour{position:fixed; inset:0; z-index:50; background:rgba(20,10,20,.45); backdrop-filter:blur(6px);
     display:flex; align-items:flex-end; justify-content:center; padding:48px 16px}
   #tour[hidden]{display:none} /* author display:flex would otherwise override the hidden attribute */
   #tour.top{align-items:flex-start}
   #tourCard{
-    background:var(--panel); border:1px solid var(--line); border-radius:16px;
-    padding:22px 26px; max-width:430px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,.5);
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:24px 28px; max-width:430px; width:100%; box-shadow:0 30px 70px -10px rgba(0,0,0,.45);
     animation:rise .35s ease backwards;
   }
   #tourStep{font-family:var(--mono); font-size:11px; letter-spacing:.25em; color:var(--dim); margin-bottom:10px}
@@ -274,9 +313,8 @@
   @media (max-width:520px){
     body{padding:0 14px 40px}
     header{padding-top:22px}
-    #ring, body.zen #ring{width:220px; height:220px}
-    #ring>div, body.zen #ring>div{width:204px; height:204px}
-    #clock, body.zen #clock{font-size:46px}
+    #ring, body.zen #ring{width:236px; height:236px}
+    #clock, body.zen #clock{font-size:44px}
     #durations{gap:14px}
     #shortcutHint{display:none}
     #taskRow select{max-width:180px}
@@ -316,8 +354,24 @@
 <main>
   <section id="tab-timer">
     <div id="timerCard">
-      <div id="phase">Focus</div>
-      <div id="ring"><div><div id="clock">25:00</div></div></div>
+      <div id="ring">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id="gradFocus" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#FF5A4D"/><stop offset="1" stop-color="#FF9E6E"/>
+            </linearGradient>
+            <linearGradient id="gradBreak" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7CCCA6"/><stop offset="1" stop-color="#AEE6C9"/>
+            </linearGradient>
+          </defs>
+          <circle class="track" cx="50" cy="50" r="45"/>
+          <circle class="prog" cx="50" cy="50" r="45" pathLength="100"/>
+        </svg>
+        <div class="face">
+          <div id="phase">Focus</div>
+          <div id="clock">25:00</div>
+        </div>
+      </div>
       <div id="dots"><i></i><i></i><i></i><i></i></div>
       <div id="todayCount"></div>
       <div id="taskRow"><span>Working on</span><select id="taskSel"></select></div>
@@ -384,6 +438,7 @@
           <div id="ytResults"></div>
           <div id="player" hidden>
             <div id="pRow1">
+              <img id="npArt" alt="" hidden>
               <button type="button" class="pbtn" id="prevBtn" title="Previous" aria-label="Previous track"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zm14 0v14l-10-7z"/></svg></button>
               <button type="button" id="ppBtn" class="playing" title="Play / pause" aria-label="Play or pause">
                 <svg class="icp" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
@@ -409,6 +464,7 @@
   </section>
 
   <section id="tab-plan" hidden>
+    <h2 class="sec">Today's <b>plan</b></h2>
     <p class="hint">Your list for today — the timer's “Working on” menu pulls from it. Drag to reorder, check off as you go.</p>
     <form class="add" id="planForm">
       <label class="f">Subject<select id="planSubj"></select></label>
@@ -421,6 +477,7 @@
   </section>
 
   <section id="tab-goals" hidden>
+    <h2 class="sec">Your <b>goals</b></h2>
     <p class="hint">Longer-term targets, beyond today. Count goals tick with + and −; minute goals fill up on their own from your logged study time.</p>
     <form class="add" id="goalForm">
       <label class="f grow">Goal<input type="text" id="goalText" placeholder="Finish 10 calculus chapters" required></label>
@@ -434,6 +491,7 @@
   </section>
 
   <section id="tab-hist" hidden>
+    <h2 class="sec">Session <b>log</b></h2>
     <p class="hint">Focus sessions land here automatically — or log one by hand.</p>
     <div id="histStats"></div>
     <form class="add" id="histForm">
@@ -628,7 +686,7 @@ function renderTimer() {
   $("phase").textContent = phaseLabel[phase];
   $("phase").classList.toggle("break", phase !== "focus");
   const focus = phase === "focus";
-  $("ring").style.setProperty("--p", 100 - remaining / (phaseMins() * 60000) * 100);
+  $("ring").style.setProperty("--p", Math.max(0, Math.min(100, 100 - remaining / (phaseMins() * 60000) * 100)));
   $("ring").style.setProperty("--ring-color", focus ? "var(--coral-bright)" : "var(--mint-bright)");
   $("ring").style.setProperty("--glow", focus ? "var(--glow-a)" : "var(--glow-t)");
   $("ring").classList.toggle("running", running);
@@ -787,6 +845,9 @@ function playTrack(id, title) {
   $("yt").src = "https://www.youtube.com/embed/" + id + (id.includes("?") ? "&" : "?") + "autoplay=1&enablejsapi=1";
   $("player").hidden = false;
   $("npTitle").textContent = title;
+  const art = /^[\w-]{11}$/.test(id);
+  $("npArt").hidden = !art;
+  if (art) $("npArt").src = "https://i.ytimg.com/vi/" + id + "/mqdefault.jpg";
   setPP(true);
   $("seekBar").value = 0; $("seekBar").disabled = true;
   $("npNow").textContent = "0:00"; $("npLen").textContent = "–";
