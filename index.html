@@ -68,18 +68,23 @@
     border:1px solid var(--line); background:var(--panel); box-shadow:0 1px 2px rgba(var(--sh),.06); transition:all .15s}
   .iconbtn:hover{color:var(--coral); transform:translateY(-1px); box-shadow:0 4px 10px -4px rgba(var(--sh),.2)}
 
-  nav{width:100%; max-width:680px; display:flex; gap:2px; padding:4px; margin-bottom:30px;
+  nav{position:relative; width:100%; max-width:680px; display:flex; gap:0; padding:4px; margin-bottom:30px;
     background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px;
     animation:rise .45s .12s ease-out backwards}
+  #navPill{
+    position:absolute; top:4px; bottom:4px; left:4px; width:calc(25% - 2px);
+    background:var(--panel); border-radius:999px;
+    box-shadow:0 1px 3px rgba(var(--sh),.1), 0 5px 14px -6px rgba(var(--sh),.18);
+    transform:translateX(calc(var(--navi,0) * 100%));
+    transition:transform .35s cubic-bezier(.3,1.4,.4,1);
+  }
   nav button{
     all:unset; cursor:pointer; flex:1; text-align:center; padding:10px 8px; border-radius:999px;
-    font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--dim); transition:all .2s;
+    position:relative; z-index:1;
+    font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--dim); transition:color .2s;
   }
   nav button:hover{color:var(--ink)}
-  nav button[aria-selected="true"]{
-    color:var(--coral); background:var(--panel);
-    box-shadow:0 1px 3px rgba(var(--sh),.1), 0 5px 14px -6px rgba(var(--sh),.18);
-  }
+  nav button[aria-selected="true"]{color:var(--coral)}
 
   main{width:100%; max-width:680px; animation:rise .45s .2s ease-out backwards}
   section[hidden]{display:none}
@@ -372,6 +377,7 @@
 </header>
 
 <nav id="tabs" role="tablist">
+  <span id="navPill" aria-hidden="true"></span>
   <button role="tab" aria-selected="true" data-tab="timer">Timer</button>
   <button role="tab" aria-selected="false" data-tab="plan">Planner</button>
   <button role="tab" aria-selected="false" data-tab="goals">Goals</button>
@@ -622,7 +628,9 @@ $("importFile").onchange = async () => {
 
 /* ---------- tabs ---------- */
 function showTab(name) {
-  for (const b of $("tabs").children) b.setAttribute("aria-selected", b.dataset.tab === name);
+  const tabs = [...document.querySelectorAll("#tabs [data-tab]")];
+  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  $("tabs").style.setProperty("--navi", Math.max(0, tabs.findIndex(b => b.dataset.tab === name)));
   for (const s of document.querySelectorAll("main section")) s.hidden = s.id !== "tab-" + name;
 }
 $("tabs").addEventListener("click", e => {
