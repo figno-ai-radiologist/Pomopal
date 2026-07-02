@@ -55,7 +55,7 @@
   header{width:100%; max-width:680px; padding:34px 0 22px; display:flex; align-items:center; justify-content:space-between; animation:rise .45s .05s ease-out backwards}
   header h1{font-family:var(--display); font-size:23px; font-weight:800; letter-spacing:.01em; display:flex; align-items:center; gap:9px}
   header h1 svg{flex:none}
-  header h1 span{color:var(--coral-bright)}
+  header h1 b{color:var(--coral-bright); font-weight:inherit}
   #hdrRight{display:flex; align-items:baseline; gap:16px}
   #today{font-family:var(--sans); font-size:13px; color:var(--dim)}
   .iconbtn{all:unset; cursor:pointer; font-family:var(--sans); font-size:15px; color:var(--dim); padding:2px 4px}
@@ -298,7 +298,7 @@
 <body>
 
 <header>
-  <h1><svg width="27" height="27" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="23" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(-22 23 10)"/><ellipse cx="41" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(22 41 10)"/><circle cx="32" cy="37" r="25" fill="#FF5A4D"/><path d="M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z" fill="#FFF7F1"/><g stroke="#FFF7F1" stroke-width="3.5" stroke-linecap="round"><path d="M53 37h-4"/><path d="M32 58v-4"/><path d="M11 37h4"/></g><g stroke="#2E1B2E" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M22.5 34q3 3.4 6 0"/><path d="M35.5 34q3 3.4 6 0"/><path d="M26 44q6 4.6 12 0"/></g></svg>Pomo<span>Pal</span></h1>
+  <h1><svg width="27" height="27" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="23" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(-22 23 10)"/><ellipse cx="41" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(22 41 10)"/><circle cx="32" cy="37" r="25" fill="#FF5A4D"/><path d="M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z" fill="#FFF7F1"/><g stroke="#FFF7F1" stroke-width="3.5" stroke-linecap="round"><path d="M53 37h-4"/><path d="M32 58v-4"/><path d="M11 37h4"/></g><g stroke="#2E1B2E" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M22.5 34q3 3.4 6 0"/><path d="M35.5 34q3 3.4 6 0"/><path d="M26 44q6 4.6 12 0"/></g></svg><span>Pomo<b>Pal</b></span></h1>
   <div id="hdrRight">
     <div id="today"></div>
     <button class="iconbtn" id="helpBtn" title="Show the guide">?</button>
