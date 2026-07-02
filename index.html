@@ -333,7 +333,20 @@
   .mv{display:none} /* touch reorder arrows — drag stays the desktop interaction */
 
   /* history */
-  #histStats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px}
+  #histChart{
+    display:flex; gap:8px; align-items:stretch; height:122px; margin-bottom:18px;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px 10px;
+    box-shadow:0 1px 2px rgba(var(--sh),.04), 0 10px 24px -18px rgba(var(--sh),.2);
+  }
+  #histChart:empty{display:none}
+  #histChart .col{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:4px}
+  #histChart .col b{font-family:var(--mono); font-size:10.5px; font-weight:500; color:var(--dim); line-height:1}
+  #histChart .col i{width:100%; max-width:34px; border-radius:6px 6px 3px 3px; background:var(--coral-bright); opacity:.45; transition:height .35s ease}
+  #histChart .col i.zero{background:rgba(var(--sh),.12); opacity:1}
+  #histChart .col.today i{opacity:1}
+  #histChart .col span{font-size:10.5px; font-weight:600; color:var(--faint)}
+  #histChart .col.today span{color:var(--coral)}
+  #histStats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px}
   #histStats:empty{display:none}
   #histStats .stat{
     background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 16px;
@@ -417,6 +430,7 @@
     .iconbtn{padding:8px 7px; font-size:17px}
     .chip{padding:8px 14px}
     #toggles input{width:20px; height:20px}
+    #histStats{grid-template-columns:repeat(2,1fr)}
     #histStats .stat b{font-size:19px}
   }
 </style>
@@ -596,6 +610,7 @@
     <h2 class="sec">Session <b>log</b></h2>
     <p class="hint">Focus sessions land here automatically — or log one by hand.</p>
     <div id="histStats"></div>
+    <div id="histChart"></div>
     <form class="add" id="histForm">
       <label class="f">Subject<select id="histSubj"></select></label>
       <label class="f">Minutes<input type="number" id="histMins" min="1" max="600" value="25"></label>
@@ -1241,9 +1256,34 @@ function renderHist() {
   const todayMins = hist.filter(h => new Date(h.at).toDateString() === todayKey).reduce((s, h) => s + h.mins, 0);
   const weekMins = hist.filter(h => Date.now() - h.at < 7 * 86400000).reduce((s, h) => s + h.mins, 0);
   $("histStats").replaceChildren();
+  $("histChart").replaceChildren();
   if (hist.length) {
+    // streak: consecutive days with a session, counting back from today (an empty today doesn't break it yet)
+    const daysWith = new Set(hist.map(h => new Date(h.at).toDateString()));
+    let streak = 0;
+    const cur = new Date();
+    if (!daysWith.has(cur.toDateString())) cur.setDate(cur.getDate() - 1);
+    while (daysWith.has(cur.toDateString())) { streak++; cur.setDate(cur.getDate() - 1); }
     const stat = (val, lab) => { const c = el("div", "stat"); c.append(el("b", null, val), el("span", null, lab)); return c; };
-    $("histStats").append(stat(todayMins + "m", "Today"), stat(weekMins + "m", "Last 7 days"), stat(String(hist.length), "Sessions"));
+    $("histStats").append(
+      stat(todayMins + "m", "Today"), stat(weekMins + "m", "Last 7 days"),
+      stat(String(hist.length), "Sessions"), stat(streak + (streak === 1 ? " day" : " days"), "Streak"));
+    // last 7 days as bars
+    const days = [...Array(7)].map((_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - (6 - i));
+      return { k: d.toDateString(), label: d.toLocaleDateString(undefined, { weekday: "narrow" }), mins: 0, today: d.toDateString() === todayKey };
+    });
+    for (const h of hist) { const d = days.find(x => x.k === new Date(h.at).toDateString()); if (d) d.mins += h.mins; }
+    const max = Math.max(...days.map(d => d.mins), 1);
+    for (const d of days) {
+      const col = el("div", "col" + (d.today ? " today" : ""));
+      col.title = d.mins + " min";
+      const bar = el("i");
+      bar.style.height = (d.mins ? Math.max(9, d.mins / max * 100) : 5) + "%";
+      if (!d.mins) bar.className = "zero";
+      col.append(el("b", null, d.mins ? (d.mins >= 60 ? +(d.mins / 60).toFixed(1) + "h" : d.mins + "m") : ""), bar, el("span", null, d.label));
+      $("histChart").append(col);
+    }
   }
   const list = hist.filter(h =>
     (!filterSubj || h.subjectId === filterSubj) &&
