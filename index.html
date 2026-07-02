@@ -100,7 +100,7 @@
   .btnrow{display:flex; gap:12px; margin:16px 0 10px}
   .btn{
     all:unset; cursor:pointer; font-family:var(--sans); font-size:14px; font-weight:500; padding:11px 26px;
-    border:1px solid var(--line); border-radius:999px; color:var(--ink); transition:all .15s;
+    border:1px solid var(--line); border-radius:999px; color:var(--ink); transition:all .15s; white-space:nowrap;
   }
   .btn:hover{border-color:var(--dim)}
   .btn:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
@@ -198,7 +198,7 @@
   .ed{cursor:text}
   .ed:hover{text-decoration:underline dotted var(--faint); text-underline-offset:3px}
   .ghost{color:var(--faint); font-style:italic; font-size:14px}
-  .x{all:unset; cursor:pointer; color:var(--dim); font-family:var(--mono); padding:4px 8px}
+  .x{all:unset; cursor:pointer; color:var(--dim); font-family:var(--mono); padding:12px 14px; margin:-8px -10px}
   .x:hover{color:var(--danger)}
   .empty{color:var(--dim); font-style:italic; padding:24px 4px; text-align:center; border:none!important; background:none!important}
   .hint{font-family:var(--sans); font-size:13px; color:var(--dim); margin-bottom:14px}
@@ -216,8 +216,11 @@
   .bar>i{display:block; height:100%; background:var(--coral-bright); border-radius:2px; transition:width .25s}
   .bar>i.full{background:var(--mint-bright)}
   .step{all:unset; cursor:pointer; font-family:var(--mono); font-size:15px; color:var(--dim);
-    border:1px solid var(--line); border-radius:6px; width:28px; height:28px; text-align:center; flex:none}
+    border:1px solid var(--line); border-radius:6px; width:28px; height:28px; flex:none;
+    display:inline-flex; align-items:center; justify-content:center}
   .step:hover{color:var(--ink); border-color:var(--dim)}
+  .step:disabled{opacity:.3; pointer-events:none}
+  .mv{display:none} /* touch reorder arrows — drag stays the desktop interaction */
 
   /* history */
   #histStats{font-family:var(--mono); font-size:13px; color:var(--dim); margin-bottom:16px; min-height:16px}
@@ -258,6 +261,9 @@
   #tourDots i.on{background:var(--coral)}
   .tourGlow{position:relative; z-index:51; outline:2px solid var(--coral); outline-offset:6px; border-radius:10px}
 
+  @media (max-width:520px), (pointer:coarse){
+    .mv{display:inline-flex}
+  }
   @media (max-width:520px){
     body{padding:0 14px 40px}
     header{padding-top:22px}
@@ -267,6 +273,18 @@
     #durations{gap:14px}
     #shortcutHint{display:none}
     #taskRow select{max-width:180px}
+    /* main controls: labels never wrap inside a pill; the row wraps cleanly instead */
+    .btnrow{gap:8px; flex-wrap:wrap; justify-content:center}
+    .btnrow .btn{padding:11px 15px}
+    /* 16px floor on form controls so iOS doesn't auto-zoom on focus */
+    select, input[type=date], form.add input[type=number], #durations input, #ytForm input, #histTools .search{font-size:16px}
+    /* comfortable tap targets */
+    .step{width:40px; height:40px}
+    .x{padding:14px 16px; margin:-10px -12px}
+    .pbtn{padding:12px 10px}
+    .iconbtn{padding:8px 7px; font-size:17px}
+    .chip{padding:8px 14px}
+    #planList input[type=checkbox], #toggles input{width:20px; height:20px}
   }
 </style>
 </head>
@@ -581,8 +599,10 @@ function chime() {
   }
 }
 function notify(body) {
-  if ("Notification" in window && Notification.permission === "granted" && document.hidden)
-    new Notification("PomoPal", { body, silent: true });
+  try { // Android Chrome requires service-worker notifications and throws on the constructor — skip gracefully
+    if ("Notification" in window && Notification.permission === "granted" && document.hidden)
+      new Notification("PomoPal", { body, silent: true });
+  } catch {}
 }
 
 let todayN = load("study.todayN", { d: "", n: 0 });
@@ -642,7 +662,7 @@ function tick() {
 }
 $("startBtn").onclick = () => {
   ensureAudio();
-  if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+  try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch {}
   running ? pauseTimer() : startTimer();
 };
 $("resetBtn").onclick = () => { stop_(); remaining = phaseMins() * 60000; saveTimer(); renderTimer(); };
@@ -880,9 +900,15 @@ function renderPlan() {
     editableText(detail, () => p.text, v => { p.text = v; save("study.plan", plan); renderTaskSel(); }, "+ Note");
     row.append(detail);
     body.append(row, el("div", "meta", (p.donePoms || 0) + "/" + p.poms + " pomodoros · ~" + p.poms * settings.focus + " min"));
+    const move = d => { plan.splice(i + d, 0, ...plan.splice(i, 1)); save("study.plan", plan); renderPlan(); };
+    const up = el("button", "step mv", "↑"), down = el("button", "step mv", "↓");
+    up.setAttribute("aria-label", "Move item up"); up.title = "Move item up";
+    down.setAttribute("aria-label", "Move item down"); down.title = "Move item down";
+    up.disabled = i === 0; down.disabled = i === plan.length - 1;
+    up.onclick = () => move(-1); down.onclick = () => move(1);
     const x = el("button", "x", "✕");
     x.onclick = () => { plan.splice(i, 1); save("study.plan", plan); renderPlan(); };
-    li.append(cb, body, x); ul.append(li);
+    li.append(cb, body, up, down, x); ul.append(li);
   });
 }
 $("planForm").onsubmit = e => {
