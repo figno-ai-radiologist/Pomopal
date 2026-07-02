@@ -127,8 +127,10 @@
   #taskRow .ic{color:var(--coral); flex:none}
   #taskRow .twrap{display:flex; flex-direction:column; flex:1; min-width:0}
   #taskRow .twrap>span{font-family:var(--sans); font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
-  #taskRow select{border:none; background:transparent; box-shadow:none; padding:2px 0; width:100%;
+  #taskRow select{border:none; background-color:transparent; box-shadow:none; padding:2px 22px 2px 0; width:100%;
+    background-position:right 4px center;
     font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ink); cursor:pointer}
+  #taskRow select:focus{background-color:transparent; border:none; box-shadow:none}
   .btnrow{display:flex; align-items:center; justify-content:space-between; width:100%; max-width:340px; margin:16px 0 10px}
   .cbtn{
     all:unset; cursor:pointer; width:44px; height:44px; border-radius:50%; flex:none;
@@ -298,6 +300,32 @@
   .hint{font-family:var(--sans); font-size:13.5px; color:var(--dim); margin-bottom:18px}
   .toolrow{display:flex; justify-content:flex-end; gap:10px; margin-top:14px}
   .toolrow .btn{font-size:11px; padding:8px 18px; color:var(--dim)}
+
+  /* ---------- field system: recessed fill, lift + coral ring on focus ---------- */
+  select, input[type=date], input[type=number], input[type=text], textarea, #durations input, #ytForm input,
+  form.add input[type=text], form.add input[type=number], form.add textarea, input.search{
+    background-color:var(--panel2); border:1.5px solid transparent; border-radius:12px;
+    color:var(--ink); box-shadow:inset 0 1.5px 3px rgba(var(--sh),.05);
+    transition:border-color .18s, background-color .18s, box-shadow .18s;
+  }
+  select:hover, input[type=date]:hover, input[type=number]:hover, input[type=text]:hover, textarea:hover,
+  #durations input:hover, #ytForm input:hover,
+  form.add input[type=text]:hover, form.add input[type=number]:hover, form.add textarea:hover, input.search:hover{border-color:var(--line)}
+  select:focus, input[type=date]:focus, input[type=number]:focus, input[type=text]:focus, textarea:focus,
+  #durations input:focus, #ytForm input:focus,
+  form.add input[type=text]:focus, form.add input[type=number]:focus, form.add textarea:focus, input.search:focus{
+    outline:none; background-color:var(--panel); border-color:var(--coral);
+    box-shadow:0 0 0 3.5px rgba(217,58,49,.13);
+  }
+  input[type=number]{appearance:textfield; -moz-appearance:textfield}
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0}
+  select{
+    appearance:none; -webkit-appearance:none; padding-right:32px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238E7D8A' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 13px center;
+  }
+  html[data-theme=dark] select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23C9B9C6' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  form.add .f:focus-within, #durations label:focus-within{color:var(--coral)}
 
   /* planner */
   #planList input[type=checkbox]{
