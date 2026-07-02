@@ -174,11 +174,15 @@
   .dot{width:8px; height:8px; border-radius:50%; display:inline-block; flex:none}
 
   /* ---------- shared list ui ---------- */
-  form.add{display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap}
+  form.add{display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; align-items:flex-end}
+  form.add .f{display:flex; flex-direction:column; gap:5px; font-family:var(--sans); font-size:12px; color:var(--dim); cursor:pointer}
+  form.add .f.grow{flex:1; min-width:150px}
+  form.add .f.grow input{width:100%}
   form.add input[type=text], form.add textarea, input.search{
-    flex:1; min-width:150px; background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
     color:var(--ink); font-family:var(--sans); font-size:16px; padding:11px 14px;
   }
+  #histTools .search{flex:1; min-width:150px}
   form.add input:focus-visible, form.add textarea:focus-visible, input.search:focus-visible{outline:none; border-color:var(--coral)}
   form.add input[type=number]{
     width:76px; background:var(--panel2); border:1px solid var(--line); border-radius:8px;
@@ -405,11 +409,11 @@
   </section>
 
   <section id="tab-plan" hidden>
-    <p class="hint">Plan today's sessions — drag to reorder, check off as you go.</p>
+    <p class="hint">Your list for today — the timer's “Working on” menu pulls from it. Drag to reorder, check off as you go.</p>
     <form class="add" id="planForm">
-      <select id="planSubj"></select>
-      <input type="text" id="planText" placeholder="Detail (optional)">
-      <input type="number" id="planPoms" min="1" max="20" value="2" title="Pomodoros">
+      <label class="f">Subject<select id="planSubj"></select></label>
+      <label class="f grow">Note<input type="text" id="planText" placeholder="Optional — e.g. chapter 4"></label>
+      <label class="f">Pomodoros<input type="number" id="planPoms" min="1" max="20" value="2"></label>
       <button class="btn primary">Add</button>
     </form>
     <ul class="items" id="planList"></ul>
@@ -417,13 +421,13 @@
   </section>
 
   <section id="tab-goals" hidden>
-    <p class="hint">Count goals tick with + and −. Minute goals track your study time on their own.</p>
+    <p class="hint">Longer-term targets, beyond today. Count goals tick with + and −; minute goals fill up on their own from your logged study time.</p>
     <form class="add" id="goalForm">
-      <input type="text" id="goalText" placeholder="Finish 10 calculus chapters" required>
-      <input type="number" id="goalTarget" min="1" max="9999" value="10" title="Target">
-      <select id="goalUnit"><option value="count">Count</option><option value="min">Minutes</option></select>
-      <select id="goalSubj" hidden></select>
-      <input type="date" id="goalDue" title="Deadline (optional)">
+      <label class="f grow">Goal<input type="text" id="goalText" placeholder="Finish 10 calculus chapters" required></label>
+      <label class="f">Target<input type="number" id="goalTarget" min="1" max="9999" value="10"></label>
+      <label class="f">Type<select id="goalUnit"><option value="count">Count</option><option value="min">Minutes</option></select></label>
+      <label class="f" id="goalSubjF" hidden>Subject<select id="goalSubj"></select></label>
+      <label class="f">Deadline<input type="date" id="goalDue" title="Optional"></label>
       <button class="btn primary">Add</button>
     </form>
     <ul class="items" id="goalList"></ul>
@@ -433,8 +437,8 @@
     <p class="hint">Focus sessions land here automatically — or log one by hand.</p>
     <div id="histStats"></div>
     <form class="add" id="histForm">
-      <select id="histSubj"></select>
-      <input type="number" id="histMins" min="1" max="600" value="25" title="Minutes">
+      <label class="f">Subject<select id="histSubj"></select></label>
+      <label class="f">Minutes<input type="number" id="histMins" min="1" max="600" value="25"></label>
       <button class="btn primary">Log</button>
       <textarea id="histNotes" placeholder="Notes — what did you cover? What's next?"></textarea>
     </form>
@@ -541,8 +545,8 @@ function fillSubjSelect(sel, { none, newOpt } = {}) {
   if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 function refreshSubjSelects() {
-  fillSubjSelect($("planSubj"), { none: "Subject…", newOpt: true });
-  fillSubjSelect($("histSubj"), { none: "Subject…", newOpt: true });
+  fillSubjSelect($("planSubj"), { none: "Choose…", newOpt: true });
+  fillSubjSelect($("histSubj"), { none: "Choose…", newOpt: true });
   fillSubjSelect($("goalSubj"), { none: "Any subject" });
 }
 for (const id of ["planSubj", "histSubj"]) {
@@ -933,7 +937,7 @@ $("clearDone").onclick = () => { plan = plan.filter(p => !p.done); save("study.p
 const goalProgress = g => g.unit === "min"
   ? hist.filter(h => h.at >= (g.createdAt || 0) && (!g.subjectId || h.subjectId === g.subjectId)).reduce((s, h) => s + h.mins, 0)
   : g.current;
-$("goalUnit").onchange = () => $("goalSubj").hidden = $("goalUnit").value !== "min";
+$("goalUnit").onchange = () => $("goalSubjF").hidden = $("goalUnit").value !== "min";
 function renderGoals() {
   const ul = $("goalList"); ul.replaceChildren();
   if (!goals.length) return ul.append(el("li", "empty", "No goals yet — aim at something."));
@@ -1059,8 +1063,8 @@ const TOUR = [
   { tab: "timer", sel: "#ring", h: "The timer", p: "Classic pomodoro: 25 min focus, 5 min break, a long one after four rounds. Space starts and pauses. Zen goes fullscreen — durations are in Settings below." },
   { tab: "timer", sel: "#taskRow", h: "Link your work", p: "Pick a planned task under “Working on” — every finished focus session logs itself to history and ticks that task's pomodoro count." },
   { tab: "timer", sel: "#musicBox", h: "Sound & music", p: "Ambience generates rain or deep noise. Focus music searches YouTube and plays it audio-only with a real player — seek, skip, volume. Try the preset chips." },
-  { tab: "plan", sel: "#planForm", h: "The planner", p: "Add a subject and a pomodoro estimate. Drag to reorder (arrow buttons on touch), check items off, click a note to edit it in place." },
-  { tab: "goals", sel: "#goalForm", h: "Goals", p: "Count goals tick with + and −. Minute goals track your logged study time all by themselves — scope them to a subject, add a deadline if you like." },
+  { tab: "plan", sel: "#planForm", h: "The planner", p: "Your plan for today — the timer works through this list. Add a subject and a pomodoro estimate; drag to reorder (arrow buttons on touch), check items off as you finish." },
+  { tab: "goals", sel: "#goalForm", h: "Goals", p: "The long game — targets that span days or weeks, unlike the planner's today-list. Count goals tick with + and −; minute goals fill up from your logged study time by themselves." },
   { tab: "hist", sel: "#histTools", h: "History", p: "Finished focus sessions land here on their own; log longer ones by hand. Search, filter by subject chips, click notes to edit. Back up or restore everything with the buttons at the bottom." },
   { tab: "timer", sel: "#hdrRight", h: "Yours to keep", p: "Everything lives in this browser — export a backup from the History tab now and then. ◐ flips the theme. Reopen this guide any time with ?" },
 ];
