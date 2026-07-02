@@ -14,7 +14,7 @@
 <style>
   :root{ /* PomoPal brand tokens — rebrand = edit this block */
     color-scheme:light;
-    --bg:#F7F3EE; --panel:#FFFFFF; --panel2:#FFE8DA; --line:#E9DCD2;
+    --bg:#F7F3EE; --panel:#FFFFFF; --panel2:#FFF2E9; --line:#E9DCD2;
     --ink:#2E1B2E; --dim:#635260; --faint:#8E7D8A;
     --coral:#C6322A;        /* accessible small-text accent */
     --coral-fill:#D93A31;   /* CTA fills, white text on top */
@@ -194,7 +194,7 @@
   details summary:hover{color:var(--ink)}
   details[open]>div, details[open]>form{animation:rise .28s ease}
   details>div, details>form{display:flex; flex-direction:column; align-items:center; gap:14px; padding:2px 20px 18px}
-  #durations{display:flex; gap:22px; color:var(--dim); font-family:var(--sans); font-size:13px}
+  #durations{display:flex; gap:18px; flex-wrap:wrap; justify-content:center; color:var(--dim); font-family:var(--sans); font-size:13px}
   #durations label{display:flex; flex-direction:column; gap:5px; align-items:center}
   #durations input{
     width:56px; background:var(--panel2); border:1px solid var(--line); border-radius:6px;
@@ -326,6 +326,16 @@
   }
   html[data-theme=dark] select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23C9B9C6' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
   form.add .f:focus-within, #durations label:focus-within{color:var(--coral)}
+  .stepper{display:inline-flex; align-items:stretch; gap:4px}
+  .sbtn{
+    all:unset; cursor:pointer; width:30px; border-radius:10px; flex:none;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:16px; color:var(--dim);
+    background:var(--panel2); box-shadow:inset 0 1.5px 3px rgba(var(--sh),.05);
+    transition:all .15s;
+  }
+  .sbtn:hover{color:var(--coral); background:var(--panel); box-shadow:0 1px 3px rgba(var(--sh),.12)}
+  .sbtn:active{transform:scale(.92)}
 
   /* planner */
   #planList input[type=checkbox]{
@@ -977,6 +987,19 @@ for (const [id, key] of [["dFocus", "focus"], ["dShort", "short"], ["dLong", "lo
 for (const [id, key] of [["tAuto", "auto"], ["tSound", "sound"]]) {
   $(id).checked = settings[key];
   $(id).onchange = () => { settings[key] = $(id).checked; save("study.settings", settings); };
+}
+/* low-friction number entry: wrap every number field with − / + steppers */
+for (const inp of document.querySelectorAll("input[type=number]")) {
+  const wrap = el("span", "stepper");
+  inp.replaceWith(wrap);
+  const mk = d => {
+    const b = el("button", "sbtn", d > 0 ? "+" : "−");
+    b.type = "button"; b.tabIndex = -1;
+    b.setAttribute("aria-label", (d > 0 ? "Increase " : "Decrease ") + (inp.title || "value"));
+    b.onclick = () => { d > 0 ? inp.stepUp() : inp.stepDown(); inp.dispatchEvent(new Event("change")); };
+    return b;
+  };
+  wrap.append(mk(-1), inp, mk(1));
 }
 $("chimeSel").value = settings.chime;
 $("chimeSel").onchange = () => { settings.chime = $("chimeSel").value; save("study.settings", settings); ensureAudio(); chime(); };
