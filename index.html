@@ -149,7 +149,10 @@
   #pRow2{flex-wrap:wrap}
   .pbtn{all:unset; cursor:pointer; color:var(--dim); font-size:13px; padding:4px}
   .pbtn:hover{color:var(--ink)}
-  #ppBtn{all:unset; cursor:pointer; width:34px; height:34px; flex:none; border-radius:50%; background:var(--coral-fill); color:var(--btn-ink); text-align:center; line-height:34px; font-size:12px}
+  #ppBtn{all:unset; cursor:pointer; width:34px; height:34px; flex:none; border-radius:50%; background:var(--coral-fill); color:var(--btn-ink); display:grid; place-items:center}
+  #ppBtn svg{grid-area:1/1}
+  #ppBtn.playing .icp{display:none}
+  #ppBtn:not(.playing) .ics{display:none}
   #npTitle{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--sans); font-size:13px; color:var(--ink)}
   #seekBar{flex:1; min-width:120px; accent-color:var(--coral-fill)}
   #seekBar:disabled{opacity:.35}
@@ -380,9 +383,12 @@
           <div id="ytResults"></div>
           <div id="player" hidden>
             <div id="pRow1">
-              <button type="button" class="pbtn" id="prevBtn" title="Previous">⏮</button>
-              <button type="button" id="ppBtn">⏸</button>
-              <button type="button" class="pbtn" id="nextBtn" title="Next">⏭</button>
+              <button type="button" class="pbtn" id="prevBtn" title="Previous" aria-label="Previous track"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zm14 0v14l-10-7z"/></svg></button>
+              <button type="button" id="ppBtn" class="playing" title="Play / pause" aria-label="Play or pause">
+                <svg class="icp" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="ics" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>
+              </button>
+              <button type="button" class="pbtn" id="nextBtn" title="Next" aria-label="Next track"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l10-7z"/></svg></button>
               <div id="npTitle">—</div>
               <button type="button" class="chip" id="vidBtn">Video</button>
             </div>
@@ -775,13 +781,14 @@ function playTrack(id, title) {
   $("yt").src = "https://www.youtube.com/embed/" + id + (id.includes("?") ? "&" : "?") + "autoplay=1&enablejsapi=1";
   $("player").hidden = false;
   $("npTitle").textContent = title;
-  $("ppBtn").textContent = "⏸";
+  setPP(true);
   $("seekBar").value = 0; $("seekBar").disabled = true;
   $("npNow").textContent = "0:00"; $("npLen").textContent = "–";
   for (const b of document.querySelectorAll(".trk")) b.classList.toggle("playing", b.dataset.id === id);
   $("musicBox").open = true;
 }
 const ytCmd = (func, args = []) => $("yt").contentWindow?.postMessage(JSON.stringify({ event: "command", func, args }), "*");
+const setPP = p => $("ppBtn").classList.toggle("playing", p); // svg play/pause icons — codepoint glyphs render as emoji on iOS
 const fmtSec = s => {
   s = Math.max(0, Math.round(s));
   const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
@@ -812,7 +819,7 @@ addEventListener("message", e => {
   }
   if (d.info.playerState != null) {
     npPlaying = d.info.playerState === 1 || d.info.playerState === 3;
-    $("ppBtn").textContent = npPlaying ? "⏸" : "▶";
+    setPP(npPlaying);
     if (d.info.playerState === 0 && lastState !== 0) step(1); // ended → next in queue
     lastState = d.info.playerState;
   }
@@ -829,7 +836,7 @@ $("nextBtn").onclick = () => step(1);
 $("ppBtn").onclick = () => {
   npPlaying = !npPlaying;
   ytCmd(npPlaying ? "playVideo" : "pauseVideo");
-  $("ppBtn").textContent = npPlaying ? "⏸" : "▶";
+  setPP(npPlaying);
 };
 $("seekBar").onpointerdown = () => seeking = true;
 $("seekBar").oninput = () => { if (seeking) $("npNow").textContent = fmtSec(+$("seekBar").value); };
