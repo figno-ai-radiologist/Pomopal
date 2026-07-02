@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" id="metaTheme" content="#F7F3EE">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PomoPal">
 <title>PomoPal</title>
@@ -296,7 +297,7 @@
   .empty:hover{transform:none!important}
   .empty svg{opacity:.85}
   .sec{font-family:var(--display); font-size:26px; font-weight:800; letter-spacing:-.01em; margin-bottom:4px}
-  .sec b{color:var(--coral-bright); font-weight:inherit}
+  .sec b{color:var(--coral-fill); font-weight:inherit}
   .hint{font-family:var(--sans); font-size:13.5px; color:var(--dim); margin-bottom:18px}
   .toolrow{display:flex; justify-content:flex-end; gap:10px; margin-top:14px}
   .toolrow .btn{font-size:11px; padding:8px 18px; color:var(--dim)}
@@ -465,7 +466,7 @@
     .step{width:40px; height:40px}
     .x{padding:14px 16px; margin:-10px -12px}
     .pbtn{padding:12px 10px}
-    .iconbtn{padding:8px 7px; font-size:17px}
+    .iconbtn{width:40px; height:40px; line-height:40px; font-size:17px}
     .chip{padding:8px 14px}
     #toggles input{width:20px; height:20px}
     #histStats{grid-template-columns:repeat(2,1fr)}
@@ -716,10 +717,12 @@ $("today").textContent = new Date().toLocaleDateString(undefined, { weekday: "lo
 const todayKey = new Date().toDateString();
 
 /* ---------- data + migration ---------- */
+const loadObj = k => { const v = load(k, {}); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; };
+const loadArr = k => { const v = load(k, []); return Array.isArray(v) ? v : []; };
 const settings = Object.assign(
   { focus: 25, short: 5, long: 15, sound: true, auto: false, theme: "light", vol: .5, ambVol: .5, chime: "bell" },
-  load("study.settings", {}));
-let subjects = load("study.subjects", []);
+  loadObj("study.settings"));
+let subjects = loadArr("study.subjects");
 const PALETTE = ["#FF5A4D", "#7CCCA6", "#F2A93B", "#7F9EE8", "#B07BC9", "#E07A9A", "#8FB96F", "#5FC4D4"];
 const subjById = id => subjects.find(s => s.id === id);
 function addSubject(name) {
@@ -729,11 +732,12 @@ function addSubject(name) {
 }
 const subjIdFor = name => (subjects.find(s => s.name.toLowerCase() === name.toLowerCase()) || addSubject(name)).id;
 
-let plan = load("study.plan", []).map(p => p.subjectId ? p
+let plan = loadArr("study.plan").map(p => p.subjectId ? p
   : { id: p.id || uid(), subjectId: subjIdFor(p.subject || "study"), text: "", poms: p.poms || 1, donePoms: 0, done: !!p.done });
-let hist = load("study.history", []).map(h => "subjectId" in h ? h
+let hist = loadArr("study.history").map(h => "subjectId" in h ? h
   : { ...h, id: h.id || uid(), subjectId: h.subject ? subjIdFor(h.subject) : null });
-let goals = load("study.goals", []).map(g => g.unit ? g
+hist.sort((a, b) => b.at - a.at); // imported backups may arrive unsorted; day grouping assumes newest-first
+let goals = loadArr("study.goals").map(g => g.unit ? g
   : { ...g, id: g.id || uid(), unit: "count", subjectId: null, due: "", createdAt: 0 });
 save("study.plan", plan); save("study.history", hist); save("study.goals", goals);
 
@@ -927,6 +931,9 @@ function tick() {
   if (remaining <= 0) return finishPhase();
   renderTimer();
 }
+document.addEventListener("visibilitychange", () => { // intervals throttle in hidden tabs; catch up on return
+  if (!document.hidden && running) tick();
+});
 $("startBtn").onclick = () => {
   ensureAudio();
   try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch {}
@@ -1264,6 +1271,8 @@ function renderGoals() {
     };
     if (g.unit === "count") {
       const minus = el("button", "step", "−"), plus = el("button", "step", "+");
+      minus.setAttribute("aria-label", "Decrease progress");
+      plus.setAttribute("aria-label", "Increase progress");
       minus.onclick = () => { g.current = Math.max(0, g.current - 1); save("study.goals", goals); renderGoals(); };
       plus.onclick = () => { g.current++; save("study.goals", goals); renderGoals(); };
       li.append(body, minus, plus, x);
@@ -1288,6 +1297,7 @@ const histSubjName = h => h.subjectId ? (subjById(h.subjectId)?.name ?? "?") : (
 function renderChips() {
   const box = $("histChips"); box.replaceChildren();
   const ids = [...new Set(hist.map(h => h.subjectId).filter(Boolean))];
+  if (filterSubj && !ids.includes(filterSubj)) filterSubj = null; // filtered subject has no sessions left
   if (!ids.length) return;
   const all = el("button", "chip" + (filterSubj === null ? " on" : ""), "All"); all.type = "button";
   all.onclick = () => { filterSubj = null; renderHist(); };
