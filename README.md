@@ -9,10 +9,12 @@ PomoPal is a pomodoro-based study companion in a single HTML file — no build s
 ### ⏱ Timer
 - Classic pomodoro: 25 min focus / 5 min short break / 15 min long break after four rounds (all adjustable with stepper controls)
 - A gradient SVG progress ring with a breathing glow — coral for focus, sage for breaks — and a gentle "cheer" when a session completes
+- Three tiny icons under the ring (brain / coffee cup / couch) show today's completed focus sessions, short breaks, and long breaks, and jump straight to any phase on tap — asks to confirm first if a session is actively running
+- **Working on** sits right under the clock as a compact subject pill; tap it to pick from today's planned tasks — finished sessions log themselves and tick off that task's pomodoro count
 - Survives page reloads mid-session, counts down in the tab title, catches up instantly when a background tab wakes
 - Chime (three styles + volume), desktop notification when a phase ends in a background tab
 - Auto-continue mode, `Space` to start/pause, and a fullscreen mode (top-right) that hides the cursor while you work
-- Link a planned task with **Working on** — finished sessions log themselves
+- Settings, ambience, and focus music live in a collapsible sheet pinned to the bottom of the screen
 
 ### 📋 Planner
 - Plan sessions per subject with a pomodoro estimate
@@ -37,7 +39,7 @@ PomoPal is a pomodoro-based study companion in a single HTML file — no build s
 
 ### ✨ Everything else
 - Warm light theme and a deep-plum dark theme (◐ in the header), custom-designed fields, buttons, and segmented navigation
-- Reusable color-coded subjects shared across planner, log, and goals
+- Reusable color-coded subjects shared across planner, log, and goals — created through a small in-app dialog, not the browser's prompt
 - One-click JSON backup export/import (bottom of the Session log tab)
 - Installable as a web app (Android/Chrome manifest + iOS metas)
 - Reduced-motion support and WCAG AA contrast in both themes

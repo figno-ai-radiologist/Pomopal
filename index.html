@@ -117,8 +117,8 @@
   @keyframes cheer{0%,100%{transform:scale(1)}35%{transform:scale(1.035)}}
   #clock{font-family:var(--mono); font-weight:300; font-size:58px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
   .phaseIcons{display:flex; align-items:center; justify-content:center; gap:24px; margin:20px 0 4px}
-  .pIcon{all:unset; cursor:pointer; display:flex; align-items:center; gap:7px; color:var(--faint); transition:color .15s}
-  .pIcon:hover{color:var(--dim)}
+  .pIcon{all:unset; cursor:pointer; display:flex; align-items:center; gap:7px; color:var(--dim); transition:color .15s}
+  .pIcon:hover{color:var(--ink)}
   .pIcon svg{flex:none}
   .pIcon b{font-family:var(--mono); font-size:13.5px; font-weight:500; color:inherit}
   .pIcon[aria-current="true"]{color:var(--coral)}
@@ -456,7 +456,7 @@
   /* zen mode */
   body.zen{padding:0}
   body.zen.idle, body.zen.idle *{cursor:none!important}
-  body.zen header, body.zen nav, body.zen .phaseIcons, body.zen .wkOn,
+  body.zen header, body.zen nav, body.zen .phaseIcons,
   body.zen #setDock, body.zen #shortcutHint{display:none}
   body.zen #timerCard{min-height:100vh; justify-content:center; padding:0}
   body.zen #ring{width:360px; height:360px}
