@@ -176,25 +176,28 @@
   }
   input[type=range]{accent-color:var(--coral-fill); width:100px}
 
-  details{
+  .setCard{
     width:100%; max-width:560px; margin-top:12px;
     background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:16px 18px 18px;
     box-shadow:0 1px 2px rgba(var(--sh),.04), 0 12px 28px -20px rgba(var(--sh),.2);
   }
-  details summary{
-    cursor:pointer; list-style:none; display:flex; align-items:center; font-family:var(--sans); font-weight:600;
-    font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); padding:15px 20px;
+  .setTabs{position:relative; display:flex; padding:4px; margin-bottom:16px; background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px}
+  .setPill{
+    position:absolute; top:4px; bottom:4px; left:4px; width:calc(33.333% - 2.67px);
+    background:var(--panel); border-radius:999px;
+    box-shadow:0 1px 3px rgba(var(--sh),.1), 0 5px 14px -6px rgba(var(--sh),.18);
+    transform:translateX(calc(var(--seti,0) * 100%));
+    transition:transform .35s cubic-bezier(.3,1.4,.4,1);
   }
-  details summary::-webkit-details-marker{display:none}
-  details summary::after{
-    content:""; width:7px; height:7px; margin-left:auto; flex:none;
-    border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor;
-    transform:rotate(45deg); transition:transform .2s;
+  .setTab{
+    all:unset; cursor:pointer; flex:1; text-align:center; padding:9px 6px; border-radius:999px;
+    position:relative; z-index:1; font-family:var(--sans); font-size:13px; font-weight:600; color:var(--dim); transition:color .2s;
   }
-  details[open] summary::after{transform:rotate(-135deg)}
-  details summary:hover{color:var(--ink)}
-  details[open]>div, details[open]>form{animation:rise .28s ease}
-  details>div, details>form{display:flex; flex-direction:column; align-items:center; gap:14px; padding:2px 20px 18px}
+  .setTab[aria-selected="true"]{color:var(--coral)}
+  .setPanel{display:flex; flex-direction:column; align-items:center; gap:14px; animation:rise .28s ease}
+  .setPanel[hidden]{display:none}
+  .setSub{font-family:var(--sans); font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); align-self:flex-start; margin:-4px 0 -8px}
   #durations{display:flex; gap:18px; flex-wrap:wrap; justify-content:center; color:var(--dim); font-family:var(--sans); font-size:13px}
   #durations label{display:flex; flex-direction:column; gap:5px; align-items:center}
   #durations input{
@@ -203,7 +206,16 @@
   }
   #toggles, #soundRow, #ambRow{display:flex; gap:24px; align-items:center; font-family:var(--sans); font-size:13px; color:var(--dim); flex-wrap:wrap; justify-content:center}
   #toggles label, #soundRow label, #ambRow label{display:flex; align-items:center; gap:8px; cursor:pointer}
-  #toggles input{accent-color:var(--coral-fill); width:14px; height:14px; cursor:pointer}
+  #toggles input{
+    appearance:none; -webkit-appearance:none; width:34px; height:20px; border-radius:999px; flex:none;
+    background:var(--line); position:relative; cursor:pointer; transition:background .15s;
+  }
+  #toggles input::before{
+    content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
+    background:#fff; box-shadow:0 1px 2px rgba(var(--sh),.3); transition:transform .15s;
+  }
+  #toggles input:checked{background:var(--coral-fill)}
+  #toggles input:checked::before{transform:translateX(14px)}
   #ytForm{flex-direction:row!important; width:100%; padding-bottom:4px!important}
   #ytForm input{flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:8px; color:var(--ink); font-family:var(--sans); font-size:14px; padding:10px 14px}
   #ytForm input:focus-visible{outline:none; border-color:var(--coral)}
@@ -485,7 +497,9 @@
     .pbtn{padding:12px 10px}
     .iconbtn{width:40px; height:40px; line-height:40px; font-size:17px}
     .chip{padding:8px 14px}
-    #toggles input{width:20px; height:20px}
+    #toggles input{width:38px; height:22px}
+    #toggles input::before{width:18px; height:18px}
+    #toggles input:checked::before{transform:translateX(16px)}
     #histStats{grid-template-columns:repeat(2,1fr)}
     #histStats .stat b{font-size:19px}
     #tour{padding:14px; align-items:center!important}
@@ -558,9 +572,15 @@
         <svg class="ex" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M440-440v240h-80v-160H200v-80h240Zm80-80v-240h80v160h160v80H520Z"/></svg>
       </button>
 
-      <details id="settingsBox">
-        <summary>Settings</summary>
-        <div>
+      <div class="setCard">
+        <div class="setTabs" id="setTabs">
+          <span class="setPill" aria-hidden="true"></span>
+          <button type="button" class="setTab" data-set="timer" aria-selected="true">Timer</button>
+          <button type="button" class="setTab" data-set="sound" aria-selected="false">Sound</button>
+          <button type="button" class="setTab" data-set="music" aria-selected="false">Music</button>
+        </div>
+
+        <div class="setPanel" data-set="timer">
           <div id="durations">
             <label>Focus<input type="number" id="dFocus" min="1" max="120"></label>
             <label>Short break<input type="number" id="dShort" min="1" max="60"></label>
@@ -568,10 +588,16 @@
           </div>
           <div id="toggles">
             <label><input type="checkbox" id="tAuto">Auto-continue</label>
+          </div>
+        </div>
+
+        <div class="setPanel" data-set="sound" hidden>
+          <div id="toggles">
             <label><input type="checkbox" id="tSound">Sound</label>
           </div>
+          <p class="setSub">Chime</p>
           <div id="soundRow">
-            <label>Chime
+            <label>Style
               <select id="chimeSel">
                 <option value="bell">Bell</option>
                 <option value="soft">Soft</option>
@@ -580,12 +606,7 @@
             </label>
             <label>Volume <input type="range" id="volSlider" min="0" max="1" step="0.05"></label>
           </div>
-        </div>
-      </details>
-
-      <details id="ambBox">
-        <summary>Ambience</summary>
-        <div>
+          <p class="setSub">Ambience</p>
           <div id="ambRow">
             <div class="chips" id="ambChips">
               <button type="button" class="chip on" data-amb="off">Off</button>
@@ -595,15 +616,12 @@
             <label>Volume <input type="range" id="ambVolSlider" min="0" max="1" step="0.05"></label>
           </div>
         </div>
-      </details>
 
-      <details id="musicBox">
-        <summary>Focus music</summary>
-        <form id="ytForm">
-          <input type="text" id="ytQ" placeholder="Search tracks or paste a YouTube link">
-          <button class="btn primary">Search</button>
-        </form>
-        <div>
+        <div class="setPanel" data-set="music" hidden>
+          <form id="ytForm">
+            <input type="text" id="ytQ" placeholder="Search tracks or paste a YouTube link">
+            <button class="btn primary">Search</button>
+          </form>
           <div class="chips">
             <button type="button" class="chip yt" data-id="n61ULEU7CO0" data-t="Best of lofi hip hop · Lofi Girl">Lofi</button>
             <button type="button" class="chip yt" data-id="4xDzrJKXOOY" data-t="Synthwave radio · Lofi Girl">Synthwave</button>
@@ -633,7 +651,7 @@
           </div>
           <iframe id="yt" class="audio" hidden allow="autoplay; encrypted-media" allowfullscreen title="focus music player"></iframe>
         </div>
-      </details>
+      </div>
 
       <div id="shortcutHint">Space — start / pause</div>
     </div>
@@ -815,6 +833,17 @@ function showTab(name) {
   $("tabs").style.setProperty("--navi", Math.max(0, tabs.findIndex(b => b.dataset.tab === name)));
   for (const s of document.querySelectorAll("main section")) s.hidden = s.id !== "tab-" + name;
 }
+function showSetTab(name) {
+  const tabs = [...document.querySelectorAll("#setTabs [data-set]")];
+  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.set === name));
+  $("setTabs").style.setProperty("--seti", Math.max(0, tabs.findIndex(b => b.dataset.set === name)));
+  for (const p of document.querySelectorAll(".setPanel")) p.hidden = p.dataset.set !== name;
+}
+$("setTabs").addEventListener("click", e => {
+  const btn = e.target.closest("[data-set]");
+  if (btn) showSetTab(btn.dataset.set);
+});
+showSetTab("timer");
 $("tabs").addEventListener("click", e => {
   const btn = e.target.closest("[data-tab]");
   if (!btn) return;
@@ -1128,7 +1157,7 @@ function playTrack(id, title) {
   $("seekBar").value = 0; $("seekBar").disabled = true;
   $("npNow").textContent = "0:00"; $("npLen").textContent = "–";
   for (const b of document.querySelectorAll(".trk")) b.classList.toggle("playing", b.dataset.id === id);
-  $("musicBox").open = true;
+  showSetTab("music");
 }
 const ytCmd = (func, args = []) => $("yt").contentWindow?.postMessage(JSON.stringify({ event: "command", func, args }), "*");
 const setPP = p => $("ppBtn").classList.toggle("playing", p); // svg play/pause icons — codepoint glyphs render as emoji on iOS
@@ -1464,7 +1493,7 @@ renderTimer();
 const TOUR = [
   { tab: "timer", sel: "#ring", h: "The timer", p: "25 focus, 5 break, a longer one every 4 rounds. Space toggles start/pause. Corner buttons reset and skip; top-right goes fullscreen." },
   { tab: "timer", sel: "#taskRow", h: "Link your work", p: "Pick a task under Working on. Finished sessions log themselves and tick off its pomodoro count." },
-  { tab: "timer", sel: "#musicBox", h: "Sound & music", p: "Rain or deep noise, built in. Or search YouTube and play tracks audio-only with real controls." },
+  { tab: "timer", sel: ".setCard", h: "Sound & music", p: "Rain or deep noise, built in. Or search YouTube and play tracks audio-only with real controls." },
   { tab: "plan", sel: "#planForm", h: "The planner", p: "Add a subject and a pomodoro count. Drag to reorder, check items off as you go." },
   { tab: "goals", sel: "#goalForm", h: "Goals", p: "Bigger targets than today's list. Count goals tick with + −; minute goals fill in on their own." },
   { tab: "hist", sel: "#histTools", h: "History", p: "Sessions log themselves here. Search, filter by subject, edit notes inline. Back up anytime at the bottom." },
