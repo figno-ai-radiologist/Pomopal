@@ -305,13 +305,13 @@
   /* ---------- field system: recessed fill, lift + coral ring on focus ---------- */
   select, input[type=date], input[type=number], input[type=text], textarea, #durations input, #ytForm input,
   form.add input[type=text], form.add input[type=number], form.add textarea, input.search{
-    background-color:var(--panel2); border:1.5px solid transparent; border-radius:12px;
-    color:var(--ink); box-shadow:inset 0 1.5px 3px rgba(var(--sh),.05);
-    transition:border-color .18s, background-color .18s, box-shadow .18s;
+    background-color:var(--panel); border:1.5px solid var(--line); border-radius:12px;
+    color:var(--ink); box-shadow:inset 0 1px 2px rgba(var(--sh),.04);
+    transition:border-color .18s, box-shadow .18s;
   }
   select:hover, input[type=date]:hover, input[type=number]:hover, input[type=text]:hover, textarea:hover,
   #durations input:hover, #ytForm input:hover,
-  form.add input[type=text]:hover, form.add input[type=number]:hover, form.add textarea:hover, input.search:hover{border-color:var(--line)}
+  form.add input[type=text]:hover, form.add input[type=number]:hover, form.add textarea:hover, input.search:hover{border-color:var(--dim)}
   select:focus, input[type=date]:focus, input[type=number]:focus, input[type=text]:focus, textarea:focus,
   #durations input:focus, #ytForm input:focus,
   form.add input[type=text]:focus, form.add input[type=number]:focus, form.add textarea:focus, input.search:focus{
@@ -332,10 +332,10 @@
     all:unset; cursor:pointer; width:30px; border-radius:10px; flex:none;
     display:inline-flex; align-items:center; justify-content:center;
     font-family:var(--mono); font-size:16px; color:var(--dim);
-    background:var(--panel2); box-shadow:inset 0 1.5px 3px rgba(var(--sh),.05);
+    background:var(--panel); border:1.5px solid var(--line); box-shadow:inset 0 1px 2px rgba(var(--sh),.04);
     transition:all .15s;
   }
-  .sbtn:hover{color:var(--coral); background:var(--panel); box-shadow:0 1px 3px rgba(var(--sh),.12)}
+  .sbtn:hover{color:var(--coral); border-color:var(--coral); box-shadow:0 1px 3px rgba(var(--sh),.12)}
   .sbtn:active{transform:scale(.92)}
 
   /* planner */
@@ -428,14 +428,31 @@
   body.zen #ring{width:360px; height:360px}
   body.zen #clock{font-size:72px}
 
+  /* new-subject modal */
+  #subjModal{
+    position:fixed; inset:0; z-index:80; background:rgba(20,10,20,.4);
+    display:flex; align-items:center; justify-content:center; padding:16px;
+  }
+  #subjModal[hidden]{display:none}
+  #subjForm{
+    background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:22px 24px; max-width:340px; width:100%;
+    box-shadow:0 30px 70px -10px rgba(0,0,0,.4);
+    animation:rise .25s ease backwards;
+  }
+  #subjForm h3{font-family:var(--display); font-size:18px; font-weight:800; margin-bottom:14px}
+  #subjForm input{width:100%; font-size:16px; padding:11px 14px; margin-bottom:16px}
+  .subjBtns{display:flex; justify-content:flex-end; gap:10px}
+
   /* tour */
-  #tour{position:fixed; inset:0; z-index:50; background:rgba(20,10,20,.45); backdrop-filter:blur(6px);
+  #tour{position:fixed; inset:0; z-index:100; background:rgba(20,10,20,.45); backdrop-filter:blur(6px);
     display:flex; align-items:flex-end; justify-content:center; padding:48px 16px}
   #tour[hidden]{display:none} /* author display:flex would otherwise override the hidden attribute */
   #tour.top{align-items:flex-start}
   #tourCard{
     background:var(--panel); border:1px solid var(--line); border-radius:20px;
-    padding:24px 28px; max-width:430px; width:100%; box-shadow:0 30px 70px -10px rgba(0,0,0,.45);
+    padding:24px 28px; max-width:430px; width:100%; max-height:calc(100vh - 32px); overflow-y:auto;
+    box-shadow:0 30px 70px -10px rgba(0,0,0,.45);
     animation:rise .35s ease backwards;
   }
   #tourStep{font-family:var(--mono); font-size:11px; letter-spacing:.25em; color:var(--dim); margin-bottom:10px}
@@ -447,7 +464,7 @@
   #tourDots{flex:1; display:flex; justify-content:center; gap:7px}
   #tourDots i{width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer}
   #tourDots i.on{background:var(--coral)}
-  .tourGlow{position:relative; z-index:51; outline:2px solid var(--coral); outline-offset:6px; border-radius:10px}
+  .tourGlow{outline:2px solid var(--coral); outline-offset:6px; border-radius:10px} /* no z-index: must never outrank #tour */
 
   @media (max-width:520px), (pointer:coarse){
     .mv{display:inline-flex}
@@ -471,6 +488,10 @@
     #toggles input{width:20px; height:20px}
     #histStats{grid-template-columns:repeat(2,1fr)}
     #histStats .stat b{font-size:19px}
+    #tour{padding:14px; align-items:center!important}
+    #tourCard{padding:18px 20px; border-radius:16px; max-height:calc(100vh - 28px)}
+    #tourH{font-size:17px; margin-bottom:6px}
+    #tourP{font-size:13.5px; margin-bottom:14px}
   }
 </style>
 </head>
@@ -669,6 +690,17 @@
   </section>
 </main>
 
+<div id="subjModal" hidden>
+  <form id="subjForm">
+    <h3>New subject</h3>
+    <input type="text" id="subjInput" placeholder="e.g. Chemistry" maxlength="40">
+    <div class="subjBtns">
+      <button type="button" class="btn" id="subjCancel">Cancel</button>
+      <button type="submit" class="btn primary">Add</button>
+    </div>
+  </form>
+</div>
+
 <div id="toast" hidden role="status">
   <span id="toastMsg"></span>
   <button type="button" id="toastBtn" hidden>Undo</button>
@@ -805,12 +837,33 @@ function refreshSubjSelects() {
   fillSubjSelect($("histSubj"), { none: "Choose…", newOpt: true });
   fillSubjSelect($("goalSubj"), { none: "Any subject" });
 }
+/* custom "new subject" modal — replaces the native prompt() dialog */
+let subjModalTarget = null;
+function openSubjModal(targetId) {
+  subjModalTarget = targetId;
+  $("subjInput").value = "";
+  $("subjModal").hidden = false;
+  $("subjInput").focus();
+}
+function closeSubjModal() { $("subjModal").hidden = true; subjModalTarget = null; }
+$("subjCancel").onclick = closeSubjModal;
+$("subjModal").onclick = e => { if (e.target === $("subjModal")) closeSubjModal(); };
+addEventListener("keydown", e => { if (e.key === "Escape" && !$("subjModal").hidden) closeSubjModal(); });
+$("subjForm").onsubmit = e => {
+  e.preventDefault();
+  const name = $("subjInput").value.trim();
+  if (!name) return;
+  const s = addSubject(name);
+  refreshSubjSelects();
+  if (subjModalTarget) $(subjModalTarget).value = s.id;
+  renderChips();
+  closeSubjModal();
+};
 for (const id of ["planSubj", "histSubj"]) {
   $(id).addEventListener("change", () => {
     if ($(id).value !== "__new") return;
-    const name = (prompt("New subject name:") || "").trim();
-    if (name) { const s = addSubject(name); refreshSubjSelects(); $(id).value = s.id; renderChips(); }
-    else $(id).value = "";
+    $(id).value = "";
+    openSubjModal(id);
   });
 }
 refreshSubjSelects();
@@ -1409,13 +1462,13 @@ renderTimer();
 
 /* ---------- guide (first run; ? in the header reopens; skippable via button, Esc, or backdrop) ---------- */
 const TOUR = [
-  { tab: "timer", sel: "#ring", h: "The timer", p: "Classic pomodoro: 25 min focus, 5 min break, a long one after four rounds. Space starts and pauses. The corner buttons reset and skip; top-right expands to fullscreen. Durations are in Settings below." },
-  { tab: "timer", sel: "#taskRow", h: "Link your work", p: "Pick a planned task under “Working on” — every finished focus session logs itself to history and ticks that task's pomodoro count." },
-  { tab: "timer", sel: "#musicBox", h: "Sound & music", p: "Ambience generates rain or deep noise. Focus music searches YouTube and plays it audio-only with a real player — seek, skip, volume. Try the preset chips." },
-  { tab: "plan", sel: "#planForm", h: "The planner", p: "Your plan for today — the timer works through this list. Add a subject and a pomodoro estimate; drag to reorder (arrow buttons on touch), check items off as you finish." },
-  { tab: "goals", sel: "#goalForm", h: "Goals", p: "The long game — targets that span days or weeks, unlike the planner's today-list. Count goals tick with + and −; minute goals fill up from your logged study time by themselves." },
-  { tab: "hist", sel: "#histTools", h: "History", p: "Finished focus sessions land here on their own; log longer ones by hand. Search, filter by subject chips, click notes to edit. Back up or restore everything with the buttons at the bottom." },
-  { tab: "timer", sel: "#hdrRight", h: "Yours to keep", p: "Everything lives in this browser — export a backup from the History tab now and then. ◐ flips the theme. Reopen this guide any time with ?" },
+  { tab: "timer", sel: "#ring", h: "The timer", p: "25 focus, 5 break, a longer one every 4 rounds. Space toggles start/pause. Corner buttons reset and skip; top-right goes fullscreen." },
+  { tab: "timer", sel: "#taskRow", h: "Link your work", p: "Pick a task under Working on. Finished sessions log themselves and tick off its pomodoro count." },
+  { tab: "timer", sel: "#musicBox", h: "Sound & music", p: "Rain or deep noise, built in. Or search YouTube and play tracks audio-only with real controls." },
+  { tab: "plan", sel: "#planForm", h: "The planner", p: "Add a subject and a pomodoro count. Drag to reorder, check items off as you go." },
+  { tab: "goals", sel: "#goalForm", h: "Goals", p: "Bigger targets than today's list. Count goals tick with + −; minute goals fill in on their own." },
+  { tab: "hist", sel: "#histTools", h: "History", p: "Sessions log themselves here. Search, filter by subject, edit notes inline. Back up anytime at the bottom." },
+  { tab: "timer", sel: "#hdrRight", h: "Yours to keep", p: "Everything stays in this browser. ◐ swaps themes, ? reopens this guide." },
 ];
 let tourI = 0;
 TOUR.forEach((_, j) => { const d = el("i"); d.onclick = () => tourShow(j); $("tourDots").append(d); });
