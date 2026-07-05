@@ -130,7 +130,7 @@
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .wkOn select{position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; padding:0; border:none; box-shadow:none}
-  .btnrow{display:flex; align-items:center; justify-content:space-between; width:100%; max-width:340px; margin:16px 0 10px}
+  .btnrow{display:flex; align-items:center; justify-content:center; gap:14px; width:100%; max-width:340px; margin:16px 0 10px}
   .cbtn{
     all:unset; cursor:pointer; width:44px; height:44px; border-radius:50%; flex:none;
     border:1px solid var(--line); background:var(--panel); color:var(--dim);
@@ -608,7 +608,6 @@
           <svg class="ics" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
           <span id="startLbl">Start focus</span>
         </button>
-        <button class="cbtn" id="skipBtn" title="Skip phase" aria-label="Skip phase"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg></button>
       </div>
       <button id="zenBtn" title="Fullscreen" aria-label="Toggle fullscreen focus mode">
         <svg class="fs" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M200-200v-240h80v160h160v80H200Zm480-320v-160H520v-80h240v240h-80Z"/></svg>
@@ -1129,12 +1128,6 @@ $("startBtn").onclick = () => {
   running ? pauseTimer() : startTimer();
 };
 $("resetBtn").onclick = () => { stop_(); remaining = phaseMins() * 60000; saveTimer(); renderTimer(); };
-$("skipBtn").onclick = () => { // skip = abandon phase: no chime, doesn't count as a done round
-  stop_();
-  [phase, cycles] = nextPhase(phase, cycles);
-  remaining = phaseMins() * 60000;
-  saveTimer(); renderTimer();
-};
 $("zenBtn").onclick = () => {
   if (document.body.classList.contains("zen")) {
     document.body.classList.remove("zen");
@@ -1605,7 +1598,7 @@ renderTimer();
 
 /* ---------- guide (first run; ? in the header reopens; skippable via button, Esc, or backdrop) ---------- */
 const TOUR = [
-  { tab: "timer", sel: "#ring", h: "The timer", p: "25 focus, 5 break, a longer one every 4 rounds. Space toggles start/pause. Corner buttons reset and skip; top-right goes fullscreen." },
+  { tab: "timer", sel: "#ring", h: "The timer", p: "25 focus, 5 break, a longer one every 4 rounds. Space toggles start/pause; the icons below jump phases directly. Top-right goes fullscreen." },
   { tab: "timer", sel: ".wkOn", h: "Link your work", p: "Pick a task under the clock. Finished sessions log themselves and tick off its pomodoro count." },
   { tab: "timer", sel: "#setHandleBtn", h: "Sound & music", p: "Tap Settings for rain, deep noise, or YouTube tracks — played audio-only with real controls." },
   { tab: "plan", sel: "#planForm", h: "The planner", p: "Add a subject and a pomodoro count. Drag to reorder, check items off as you go." },
