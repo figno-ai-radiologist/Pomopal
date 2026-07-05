@@ -116,8 +116,9 @@
   #ring.cheer{animation:cheer .8s ease}
   @keyframes cheer{0%,100%{transform:scale(1)}35%{transform:scale(1.035)}}
   #clock{font-family:var(--mono); font-weight:300; font-size:58px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
-  .phaseTabs{max-width:340px; margin:0 auto 16px}
-  #todayCount{font-family:var(--sans); font-size:13px; color:var(--dim); min-height:17px}
+  .phaseBar{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:20px 0 4px; min-height:17px}
+  .phaseBar select{font-weight:600}
+  .phaseStats{font-family:var(--sans); font-size:13px; color:var(--dim)}
   #taskRow{
     display:flex; align-items:center; gap:12px; margin:16px 0 4px; padding:10px 20px;
     width:100%; max-width:340px; background:var(--panel); border:1px solid var(--line);
@@ -456,7 +457,7 @@
   /* zen mode */
   body.zen{padding:0}
   body.zen.idle, body.zen.idle *{cursor:none!important}
-  body.zen header, body.zen nav, body.zen #todayCount, body.zen #taskRow,
+  body.zen header, body.zen nav, body.zen .phaseBar, body.zen #taskRow,
   body.zen #setDock, body.zen #shortcutHint{display:none}
   body.zen #timerCard{min-height:100vh; justify-content:center; padding:0}
   body.zen #ring{width:360px; height:360px}
@@ -571,13 +572,14 @@
           <div id="clock">25:00</div>
         </div>
       </div>
-      <div class="setTabs phaseTabs" id="phaseTabs">
-        <span class="setPill" aria-hidden="true"></span>
-        <button type="button" class="setTab" data-phase="focus" aria-selected="true">Focus</button>
-        <button type="button" class="setTab" data-phase="short" aria-selected="false">Short</button>
-        <button type="button" class="setTab" data-phase="long" aria-selected="false"><span id="longLbl">Long</span></button>
+      <div class="phaseBar">
+        <select id="phaseSel" aria-label="Jump to phase">
+          <option value="focus">Focus</option>
+          <option value="short">Short break</option>
+          <option value="long">Long break</option>
+        </select>
+        <span class="phaseStats" id="phaseStats"></span>
       </div>
-      <div id="todayCount"></div>
       <div id="taskRow">
         <svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
         <div class="twrap">
@@ -995,8 +997,9 @@ function notify(body) {
   } catch {}
 }
 
-let todayN = load("study.todayN", { d: "", n: 0 });
-if (todayN.d !== todayKey) todayN = { d: todayKey, n: 0 };
+let todayN = load("study.todayN", { d: "", focus: 0, rest: 0 });
+if (todayN.n != null && todayN.focus == null) todayN = { d: todayN.d, focus: todayN.n, rest: 0 };
+if (todayN.d !== todayKey) todayN = { d: todayKey, focus: 0, rest: 0 };
 
 function saveTimer() {
   save("study.timer", { phase, cycles, running, endAt, taskId: timerTaskId, remaining: running ? endAt - Date.now() : remaining });
@@ -1010,17 +1013,12 @@ function renderTimer() {
   $("ring").style.setProperty("--ring-color", focus ? "var(--coral-bright)" : "var(--mint-bright)");
   $("ring").style.setProperty("--glow", focus ? "var(--glow-a)" : "var(--glow-t)");
   $("ring").classList.toggle("running", running);
-  renderPhaseTabs();
-  $("todayCount").textContent = todayN.n ? todayN.n + " session" + (todayN.n > 1 ? "s" : "") + " done today" : "";
+  $("phaseSel").value = phase;
+  $("phaseStats").textContent = (todayN.focus || todayN.rest)
+    ? todayN.focus + " focus · " + todayN.rest + " rest" + (todayN.rest === 1 ? "" : "s") + " today" : "";
   $("startLbl").textContent = running ? "Pause" : !focus ? "Take a break" : cycles ? "Back to focus" : "Start focus";
   $("startBtn").classList.toggle("playing", running);
   document.title = running ? fmt(remaining) + " · " + phaseLabel[phase] : "PomoPal";
-}
-function renderPhaseTabs() {
-  const tabs = [...document.querySelectorAll("#phaseTabs [data-phase]")];
-  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.phase === phase));
-  $("phaseTabs").style.setProperty("--seti", Math.max(0, tabs.findIndex(b => b.dataset.phase === phase)));
-  $("longLbl").textContent = "Long " + cycles + "/4";
 }
 function jumpToPhase(target) { // direct phase switch — like skip, but to any phase, not just the next one
   if (target === phase) return;
@@ -1030,10 +1028,7 @@ function jumpToPhase(target) { // direct phase switch — like skip, but to any 
   remaining = phaseMins() * 60000;
   saveTimer(); renderTimer();
 }
-$("phaseTabs").addEventListener("click", e => {
-  const btn = e.target.closest("[data-phase]");
-  if (btn) jumpToPhase(btn.dataset.phase);
-});
+$("phaseSel").onchange = () => jumpToPhase($("phaseSel").value);
 function stop_() { running = false; clearInterval(tickId); }
 function startTimer() {
   running = true; endAt = Date.now() + remaining;
@@ -1053,7 +1048,8 @@ function autoLog() { // a finished focus round lands in history, credits its tas
   renderPlan(); renderHist(); renderGoals();
 }
 function finishPhase(live = true) {
-  if (phase === "focus") { todayN.n++; save("study.todayN", todayN); autoLog(); }
+  if (phase === "focus") { todayN.focus++; autoLog(); } else { todayN.rest++; }
+  save("study.todayN", todayN);
   [phase, cycles] = nextPhase(phase, cycles);
   stop_();
   remaining = phaseMins() * 60000;
