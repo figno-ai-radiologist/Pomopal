@@ -475,7 +475,7 @@
   .miniBtns{display:flex; justify-content:flex-end; gap:10px}
 
   /* tour */
-  #tour{position:fixed; inset:0; z-index:100; background:rgba(20,10,20,.45); backdrop-filter:blur(6px);
+  #tour{position:fixed; inset:0; z-index:100;
     display:flex; align-items:flex-end; justify-content:center; padding:48px 16px}
   #tour[hidden]{display:none} /* author display:flex would otherwise override the hidden attribute */
   #tour.top{align-items:flex-start}
@@ -494,7 +494,11 @@
   #tourDots{flex:1; display:flex; justify-content:center; gap:7px}
   #tourDots i{width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer}
   #tourDots i.on{background:var(--coral)}
-  .tourGlow{outline:2px solid var(--coral); outline-offset:6px; border-radius:10px} /* no z-index: must never outrank #tour */
+  .tourGlow{
+    position:relative; z-index:90; /* below #tour's 100 — the card must always stay on top */
+    outline:2px solid var(--coral); outline-offset:6px; border-radius:10px;
+    box-shadow:0 0 0 9999px rgba(20,10,20,.5); /* the actual dimming: a cutout around the target, not a layer over it */
+  }
 
   @media (max-width:520px), (pointer:coarse){
     .mv{display:inline-flex}
