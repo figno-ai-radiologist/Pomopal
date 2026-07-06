@@ -68,8 +68,6 @@
   header h1 svg{flex:none; filter:drop-shadow(0 3px 6px rgba(255,90,77,.28))}
   header h1 b{color:var(--coral); font-weight:inherit}
   #hdrRight{display:flex; align-items:center; gap:10px}
-  #today{font-family:var(--sans); font-size:12.5px; font-weight:500; color:var(--dim);
-    background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px; padding:6px 14px}
   .iconbtn{all:unset; cursor:pointer; font-family:var(--sans); font-size:15px; color:var(--dim);
     width:34px; height:34px; text-align:center; line-height:34px; border-radius:50%;
     border:1px solid var(--line); background:var(--panel); box-shadow:0 1px 2px rgba(var(--sh),.06); transition:all .15s}
@@ -547,7 +545,6 @@
 <header>
   <h1><svg width="27" height="27" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="23" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(-22 23 10)"/><ellipse cx="41" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(22 41 10)"/><circle cx="32" cy="37" r="25" fill="#FF5A4D"/><path d="M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z" fill="#FFF7F1"/><g stroke="#FFF7F1" stroke-width="3.5" stroke-linecap="round"><path d="M53 37h-4"/><path d="M32 58v-4"/><path d="M11 37h4"/></g><g stroke="#2E1B2E" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M22.5 34q3 3.4 6 0"/><path d="M35.5 34q3 3.4 6 0"/><path d="M26 44q6 4.6 12 0"/></g></svg><span>Pomo<b>Pal</b></span></h1>
   <div id="hdrRight">
-    <div id="today"></div>
     <button class="iconbtn" id="helpBtn" title="Show the guide">?</button>
     <button class="iconbtn" id="themeBtn" title="Light / dark">◐</button>
   </div>
@@ -839,7 +836,6 @@ function emptyState(text) {
   return li;
 }
 
-$("today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 const todayKey = () => new Date().toDateString(); // a function, not a snapshot — must stay correct across midnight for a session left open
 
 /* ---------- data + migration ---------- */
