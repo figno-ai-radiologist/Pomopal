@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="PomoPal">
 <title>PomoPal</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><ellipse cx='23' cy='10' rx='8' ry='4.5' fill='%237CCCA6' transform='rotate(-22 23 10)'/><ellipse cx='41' cy='10' rx='8' ry='4.5' fill='%237CCCA6' transform='rotate(22 41 10)'/><circle cx='32' cy='37' r='25' fill='%23FF5A4D'/><path d='M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z' fill='%23FFF7F1'/><g stroke='%23FFF7F1' stroke-width='3.5' stroke-linecap='round'><path d='M53 37h-4'/><path d='M32 58v-4'/><path d='M11 37h4'/></g><g stroke='%232E1B2E' stroke-width='2.6' stroke-linecap='round' fill='none'><path d='M22.5 34q3 3.4 6 0'/><path d='M35.5 34q3 3.4 6 0'/><path d='M26 44q6 4.6 12 0'/></g></svg>">
-<script>document.documentElement.dataset.theme = (JSON.parse(localStorage.getItem("study.settings") || "{}").theme) || "light";</script>
+<script>try{document.documentElement.dataset.theme=(JSON.parse(localStorage.getItem("study.settings")||"{}").theme)||"light";}catch{document.documentElement.dataset.theme="light";}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -20,6 +20,7 @@
     --coral:#C6322A;        /* accessible small-text accent */
     --coral-fill:#D93A31;   /* CTA fills, white text on top */
     --coral-bright:#FF5A4D; /* logo, ring, decorative only — never small text */
+    --coral-on-ink:#FF6F62; /* for text on a var(--ink) surface (e.g. the toast) — ink is dark here, so this needs the bright value */
     --mint:#2B7757;         /* accessible break/done text */
     --mint-bright:#7CCCA6;  /* decorative break/done fills */
     --danger:#B3372F;
@@ -34,7 +35,7 @@
     color-scheme:dark;
     --bg:#241726; --panel:#31212F; --panel2:#3B2939; --line:#4E3A4C;
     --ink:#F7F3EE; --dim:#C9B9C6; --faint:#97859A;
-    --coral:#FF6F62; --coral-fill:#D93A31; --coral-bright:#FF5A4D;
+    --coral:#FF6F62; --coral-fill:#D93A31; --coral-bright:#FF5A4D; --coral-on-ink:#C6322A; /* dark theme's ink is light, so this needs the dark/saturated value */
     --mint:#7CCCA6; --mint-bright:#7CCCA6;
     --danger:#FF8A7E;
     --btn-ink:#FFFFFF;
@@ -63,7 +64,7 @@
   header{width:100%; max-width:680px; padding:34px 0 22px; display:flex; align-items:center; justify-content:space-between; animation:rise .45s .05s ease-out backwards}
   header h1{font-family:var(--display); font-size:24px; font-weight:800; letter-spacing:.01em; display:flex; align-items:center; gap:10px}
   header h1 svg{flex:none; filter:drop-shadow(0 3px 6px rgba(255,90,77,.28))}
-  header h1 b{color:var(--coral-bright); font-weight:inherit}
+  header h1 b{color:var(--coral); font-weight:inherit}
   #hdrRight{display:flex; align-items:center; gap:10px}
   #today{font-family:var(--sans); font-size:12.5px; font-weight:500; color:var(--dim);
     background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px; padding:6px 14px}
@@ -223,8 +224,8 @@
   #durations{display:flex; gap:18px; flex-wrap:wrap; justify-content:center; color:var(--dim); font-family:var(--sans); font-size:13px}
   #durations label{display:flex; flex-direction:column; gap:5px; align-items:center}
   #durations input{
-    width:56px; background:var(--panel2); border:1px solid var(--line); border-radius:6px;
-    color:var(--ink); font-family:var(--mono); font-size:14px; text-align:center; padding:6px 2px;
+    /* background/border/border-radius come from the field-system rule below — this only sets what's unique to this size */
+    width:56px; color:var(--ink); font-family:var(--mono); font-size:14px; text-align:center; padding:6px 2px;
   }
   #toggles, #soundRow, #ambRow{display:flex; gap:24px; align-items:center; font-family:var(--sans); font-size:13px; color:var(--dim); flex-wrap:wrap; justify-content:center}
   #toggles label, #soundRow label, #ambRow label{display:flex; align-items:center; gap:8px; cursor:pointer}
@@ -251,7 +252,7 @@
   .trk:hover{background:var(--panel2)}
   .trk .t{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink)}
   .trk .a{max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .trk .d{color:var(--faint); flex:none}
+  .trk .d{color:var(--dim); flex:none}
   .trk.playing .t, .trk.playing{color:var(--coral)}
   .trk a{color:var(--coral)}
   #player{width:100%; display:flex; flex-direction:column; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px 14px;
@@ -273,7 +274,7 @@
   #ytVol{width:70px; accent-color:var(--coral-fill)}
   #yt{width:100%; aspect-ratio:16/9; border:1px solid var(--line); border-radius:10px}
   #yt.audio{width:0; height:0; aspect-ratio:auto; border:none; position:absolute; opacity:0; pointer-events:none}
-  #shortcutHint{font-family:var(--sans); font-size:12px; color:var(--faint); margin-top:18px}
+  #shortcutHint{font-family:var(--sans); font-size:12px; color:var(--dim); margin-top:18px}
 
   .chips{display:flex; gap:8px; flex-wrap:wrap}
   .chip{
@@ -298,8 +299,7 @@
   #histTools .search{flex:1; min-width:150px}
   form.add input:focus-visible, form.add textarea:focus-visible, input.search:focus-visible{outline:none; border-color:var(--coral)}
   form.add input[type=number]{
-    width:76px; background:var(--panel2); border:1px solid var(--line); border-radius:8px;
-    color:var(--ink); font-family:var(--mono); font-size:15px; text-align:center; padding:11px 6px;
+    width:76px; color:var(--ink); font-family:var(--mono); font-size:15px; text-align:center; padding:11px 6px;
   }
   form.add textarea{width:100%; resize:vertical; min-height:60px}
   form.add ::placeholder, input.search::placeholder{color:var(--faint)}
@@ -412,7 +412,7 @@
   #histChart .col i{width:100%; max-width:34px; border-radius:6px 6px 3px 3px; background:var(--coral-bright); opacity:.45; transition:height .35s ease}
   #histChart .col i.zero{background:rgba(var(--sh),.12); opacity:1}
   #histChart .col.today i{opacity:1}
-  #histChart .col span{font-size:10.5px; font-weight:600; color:var(--faint)}
+  #histChart .col span{font-size:10.5px; font-weight:600; color:var(--dim)}
   #histChart .col.today span{color:var(--coral)}
   #histStats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px}
   #histStats:empty{display:none}
@@ -425,7 +425,7 @@
   #histStats .stat span{font-size:11.5px; font-weight:500; color:var(--dim)}
   #histList li.daysep, #histList li.daysep:hover{
     background:none; border:none; box-shadow:none; transform:none; padding:12px 4px 0;
-    font-family:var(--sans); font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--faint);
+    font-family:var(--sans); font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--dim);
   }
   #histTools{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:4px}
   #histTools .search{font-family:var(--sans); font-size:14px; padding:9px 14px; min-width:180px}
@@ -444,7 +444,7 @@
   #toast[hidden]{display:none}
   #toastBtn{
     all:unset; cursor:pointer; font-size:12.5px; font-weight:600; padding:5px 14px;
-    border:1px solid rgba(128,128,128,.5); border-radius:999px; color:var(--coral-bright);
+    border:1px solid rgba(128,128,128,.5); border-radius:999px; color:var(--coral-on-ink);
   }
   #toastBtn:hover{border-color:var(--coral-bright)}
 
@@ -524,6 +524,9 @@
     #toggles input:checked::before{transform:translateX(16px)}
     #histStats{grid-template-columns:repeat(2,1fr)}
     #histStats .stat b{font-size:19px}
+    .phaseIcons{gap:16px}
+    .pIcon{padding:8px 4px}
+    .wkOnLabel{max-width:118px}
     #tour{padding:14px; align-items:center!important}
     #tourCard{padding:18px 20px; border-radius:16px; max-height:calc(100vh - 28px)}
     #tourH{font-size:17px; margin-bottom:6px}
@@ -757,8 +760,8 @@
 </main>
 
 <div class="miniOverlay" id="subjModal" hidden>
-  <form class="miniCard" id="subjForm">
-    <h3>New subject</h3>
+  <form class="miniCard" id="subjForm" role="dialog" aria-modal="true" aria-labelledby="subjTitle">
+    <h3 id="subjTitle">New subject</h3>
     <input type="text" id="subjInput" placeholder="e.g. Chemistry" maxlength="40">
     <div class="miniBtns">
       <button type="button" class="btn" id="subjCancel">Cancel</button>
@@ -768,8 +771,8 @@
 </div>
 
 <div class="miniOverlay" id="confirmModal" hidden>
-  <div class="miniCard" id="confirmCard">
-    <h3>Discard session?</h3>
+  <div class="miniCard" id="confirmCard" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h3 id="confirmTitle">Discard session?</h3>
     <p id="confirmMsg"></p>
     <div class="miniBtns">
       <button type="button" class="btn" id="confirmCancel">Cancel</button>
@@ -799,7 +802,7 @@
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
-const load = (k, d) => JSON.parse(localStorage.getItem(k) ?? "null") ?? d;
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k) ?? "null") ?? d; } catch { return d; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -823,7 +826,7 @@ function emptyState(text) {
 }
 
 $("today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
-const todayKey = new Date().toDateString();
+const todayKey = () => new Date().toDateString(); // a function, not a snapshot — must stay correct across midnight for a session left open
 
 /* ---------- data + migration ---------- */
 const loadObj = k => { const v = load(k, {}); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; };
@@ -869,7 +872,7 @@ $("themeBtn").onclick = () => {
   })], { type: "application/json" }));
   document.head.append(m);
 }
-const DATA_KEYS = ["study.subjects", "study.plan", "study.goals", "study.history", "study.settings", "study.todayN", "study.timer", "study.tab"];
+const DATA_KEYS = ["study.subjects", "study.plan", "study.goals", "study.history", "study.settings", "study.todayN", "study.timer", "study.tab", "study.tour"];
 $("exportBtn").onclick = () => {
   const blob = new Blob([JSON.stringify(Object.fromEntries(DATA_KEYS.map(k => [k, load(k, null)])), null, 2)], { type: "application/json" });
   const a = el("a"); a.href = URL.createObjectURL(blob); a.download = "pomopal-backup.json";
@@ -977,7 +980,7 @@ function editableText(node, get, set, ghost) {
 }
 
 /* ---------- timer ---------- */
-let phase = "focus", cycles = 0, running = false, endAt = 0, remaining = settings.focus * 60000, tickId = 0, timerTaskId = null;
+let phase = "focus", cycles = 0, running = false, endAt = 0, remaining = settings.focus * 60000, tickId = 0, timerTaskId = null, sessionSubjectId = null;
 const phaseLabel = { focus: "Focus", short: "Short break", long: "Long break" };
 const phaseMins = () => settings[phase];
 
@@ -1022,7 +1025,7 @@ function notify(body) {
 let todayN = load("study.todayN", { d: "", focus: 0, short: 0, long: 0 });
 if (todayN.n != null && todayN.focus == null) todayN = { d: todayN.d, focus: todayN.n, short: 0, long: 0 };
 if (todayN.rest != null && todayN.short == null) todayN = { d: todayN.d, focus: todayN.focus || 0, short: 0, long: 0 };
-if (todayN.d !== todayKey) todayN = { d: todayKey, focus: 0, short: 0, long: 0 };
+if (todayN.d !== todayKey()) todayN = { d: todayKey(), focus: 0, short: 0, long: 0 };
 
 /* discard-confirmation dialog: reused by anything that needs a yes/no before a destructive action */
 let confirmResolve = null;
@@ -1030,9 +1033,20 @@ function askConfirm(msg) {
   return new Promise(res => {
     $("confirmMsg").textContent = msg;
     $("confirmModal").hidden = false;
+    $("confirmCancel").focus(); // default to the non-destructive choice
     confirmResolve = res;
   });
 }
+function trapTab(e, container) { // minimal focus trap: keep Tab cycling inside the dialog while it's open
+  if (e.key !== "Tab") return;
+  const focusables = [...container.querySelectorAll("button, input")].filter(el => !el.disabled);
+  if (!focusables.length) return;
+  const first = focusables[0], last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+$("subjModal").addEventListener("keydown", e => trapTab(e, $("subjForm")));
+$("confirmModal").addEventListener("keydown", e => trapTab(e, $("confirmCard")));
 function closeConfirm(result) {
   $("confirmModal").hidden = true;
   confirmResolve?.(result);
@@ -1067,7 +1081,11 @@ function jumpToPhase(target) { // direct phase switch — like skip, but to any 
   if (target === phase) return;
   stop_();
   phase = target;
+  // keep `cycles` sane for every target, not just "long" — otherwise a stale count desyncs
+  // the short/long cadence for whichever phase gets jumped to next
   if (target === "long") cycles = 4;
+  else if (target === "focus") cycles = 0; // matches the natural long→focus reset: jumping to focus always starts a fresh set
+  else cycles = Math.min(Math.max(cycles, 1), 3); // short only ever occurs mid-set naturally; clamp into that range
   remaining = phaseMins() * 60000;
   saveTimer(); renderTimer();
 }
@@ -1082,13 +1100,14 @@ $("phaseIcons").addEventListener("click", async e => {
 function stop_() { running = false; clearInterval(tickId); }
 function startTimer() {
   running = true; endAt = Date.now() + remaining;
+  sessionSubjectId = plan.find(p => p.id === timerTaskId)?.subjectId ?? null; // snapshot now, so a later delete/complete of the task can't blank out attribution
   clearInterval(tickId); tickId = setInterval(tick, 250);
   saveTimer(); renderTimer();
 }
 function pauseTimer() { remaining = endAt - Date.now(); stop_(); saveTimer(); renderTimer(); }
 function autoLog() { // a finished focus round lands in history, credits its task
   const task = plan.find(p => p.id === timerTaskId && !p.done);
-  hist.unshift({ id: uid(), subjectId: task?.subjectId ?? null, mins: settings.focus, notes: "", at: Date.now(), auto: true });
+  hist.unshift({ id: uid(), subjectId: sessionSubjectId, mins: settings.focus, notes: "", at: Date.now(), auto: true });
   save("study.history", hist);
   if (task) {
     task.donePoms = (task.donePoms || 0) + 1;
@@ -1098,6 +1117,7 @@ function autoLog() { // a finished focus round lands in history, credits its tas
   renderPlan(); renderHist(); renderGoals();
 }
 function finishPhase(live = true) {
+  if (todayN.d !== todayKey()) todayN = { d: todayKey(), focus: 0, short: 0, long: 0 }; // a session can finish after midnight even though the tab opened yesterday
   if (phase === "focus") { todayN.focus++; autoLog(); } else { todayN[phase]++; }
   save("study.todayN", todayN);
   [phase, cycles] = nextPhase(phase, cycles);
@@ -1397,9 +1417,13 @@ function renderPlan() {
     up.onclick = () => move(-1); down.onclick = () => move(1);
     const x = el("button", "x", "✕");
     x.onclick = () => {
+      const wasLinked = plan[i].id === timerTaskId; // renderPlan (via renderTaskSel) clears the link once this task is gone — remember it so undo can restore it
       const [rm] = plan.splice(i, 1);
       save("study.plan", plan); renderPlan();
-      toast("Task deleted", () => { plan.splice(i, 0, rm); save("study.plan", plan); renderPlan(); });
+      toast("Task deleted", () => {
+        plan.splice(i, 0, rm); save("study.plan", plan); renderPlan();
+        if (wasLinked) { timerTaskId = rm.id; saveTimer(); renderTaskSel(); }
+      });
     };
     li.append(cb, body, up, down, x); ul.append(li);
   });
@@ -1490,10 +1514,10 @@ function renderChips() {
   all.onclick = () => { filterSubj = null; renderHist(); };
   box.append(all);
   for (const id of ids) {
-    const s = subjById(id); if (!s) continue;
+    const s = subjById(id); // s can be undefined if the subject was lost (e.g. a partial backup import) — still show a chip, don't hide those sessions from filtering
     const c = el("button", "chip" + (filterSubj === id ? " on" : "")); c.type = "button";
-    const d = el("i", "dot"); d.style.background = s.color;
-    c.append(d, s.name);
+    const d = el("i", "dot"); d.style.background = s?.color ?? "var(--faint)";
+    c.append(d, s?.name ?? "?");
     c.onclick = () => { filterSubj = filterSubj === id ? null : id; renderHist(); };
     box.append(c);
   }
@@ -1501,7 +1525,7 @@ function renderChips() {
 function renderHist() {
   const ul = $("histList"); ul.replaceChildren();
   renderChips();
-  const todayMins = hist.filter(h => new Date(h.at).toDateString() === todayKey).reduce((s, h) => s + h.mins, 0);
+  const todayMins = hist.filter(h => new Date(h.at).toDateString() === todayKey()).reduce((s, h) => s + h.mins, 0);
   const weekMins = hist.filter(h => Date.now() - h.at < 7 * 86400000).reduce((s, h) => s + h.mins, 0);
   $("histStats").replaceChildren();
   $("histChart").replaceChildren();
@@ -1519,7 +1543,7 @@ function renderHist() {
     // last 7 days as bars
     const days = [...Array(7)].map((_, i) => {
       const d = new Date(); d.setDate(d.getDate() - (6 - i));
-      return { k: d.toDateString(), label: d.toLocaleDateString(undefined, { weekday: "narrow" }), mins: 0, today: d.toDateString() === todayKey };
+      return { k: d.toDateString(), label: d.toLocaleDateString(undefined, { weekday: "narrow" }), mins: 0, today: d.toDateString() === todayKey() };
     });
     for (const h of hist) { const d = days.find(x => x.k === new Date(h.at).toDateString()); if (d) d.mins += h.mins; }
     const max = Math.max(...days.map(d => d.mins), 1);
@@ -1539,7 +1563,7 @@ function renderHist() {
   if (!list.length) return ul.append(emptyState(hist.length ? "No matches." : "No sessions logged yet."));
   const dayLabel = at => {
     const k = new Date(at).toDateString();
-    if (k === todayKey) return "Today";
+    if (k === todayKey()) return "Today";
     if (k === new Date(Date.now() - 86400000).toDateString()) return "Yesterday";
     return new Date(at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   };
@@ -1580,12 +1604,15 @@ $("histForm").onsubmit = e => {
 
 /* ---------- boot ---------- */
 renderPlan(); renderGoals(); renderHist();
-{ // restore timer across reloads
-  const t = load("study.timer", null);
-  if (t) {
-    phase = t.phase; cycles = t.cycles; remaining = t.remaining; timerTaskId = t.taskId ?? null;
+{ // restore timer across reloads — validate shape (not just "is it an object") so a corrupted/hand-edited value can't produce a NaN:NaN clock
+  const t = loadObj("study.timer");
+  if (t.phase === "focus" || t.phase === "short" || t.phase === "long") {
+    phase = t.phase;
+    cycles = Number.isInteger(t.cycles) ? t.cycles : 0;
+    remaining = Number.isFinite(t.remaining) ? t.remaining : phaseMins() * 60000;
+    timerTaskId = t.taskId ?? null;
     renderTaskSel();
-    if (t.running) {
+    if (t.running && Number.isFinite(t.endAt)) {
       remaining = t.endAt - Date.now();
       if (remaining > 0) { endAt = t.endAt; running = true; tickId = setInterval(tick, 250); }
       else finishPhase(false); // phase ended while the page was closed
