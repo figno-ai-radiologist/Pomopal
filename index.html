@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="PomoPal">
 <title>PomoPal</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><ellipse cx='23' cy='10' rx='8' ry='4.5' fill='%237CCCA6' transform='rotate(-22 23 10)'/><ellipse cx='41' cy='10' rx='8' ry='4.5' fill='%237CCCA6' transform='rotate(22 41 10)'/><circle cx='32' cy='37' r='25' fill='%23FF5A4D'/><path d='M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z' fill='%23FFF7F1'/><g stroke='%23FFF7F1' stroke-width='3.5' stroke-linecap='round'><path d='M53 37h-4'/><path d='M32 58v-4'/><path d='M11 37h4'/></g><g stroke='%232E1B2E' stroke-width='2.6' stroke-linecap='round' fill='none'><path d='M22.5 34q3 3.4 6 0'/><path d='M35.5 34q3 3.4 6 0'/><path d='M26 44q6 4.6 12 0'/></g></svg>">
+<!-- iOS ignores the web manifest icon and only reads apple-touch-icon — rasterized PNG since iOS won't accept an SVG here -->
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
 <script>try{document.documentElement.dataset.theme=(JSON.parse(localStorage.getItem("study.settings")||"{}").theme)||"light";}catch{document.documentElement.dataset.theme="light";}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
@@ -120,6 +122,7 @@
   .phaseIcons{display:flex; align-items:center; justify-content:center; gap:24px; margin:20px 0 4px}
   .pIcon{all:unset; cursor:pointer; display:flex; align-items:center; gap:7px; color:var(--dim); transition:color .15s}
   .pIcon:hover{color:var(--ink)}
+  .pIcon:focus-visible{outline:2px solid var(--coral); outline-offset:3px; border-radius:6px}
   .pIcon svg{flex:none}
   .pIcon b{font-family:var(--mono); font-size:13.5px; font-weight:500; color:inherit}
   .pIcon[aria-current="true"]{color:var(--coral)}
@@ -163,6 +166,7 @@
   .btn:hover{transform:translateY(-1px); box-shadow:0 5px 12px -5px rgba(var(--sh),.22)}
   .btn:active{transform:translateY(0); box-shadow:0 1px 2px rgba(var(--sh),.06)}
   .btn:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
+  .btn:disabled{opacity:.5; cursor:default; pointer-events:none}
   .btn.primary{
     background:var(--coral-fill); border-color:var(--coral-fill); color:var(--btn-ink); font-weight:600;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 6px 16px -6px rgba(217,58,49,.55);
@@ -366,6 +370,8 @@
   }
   .sbtn:hover{color:var(--coral); border-color:var(--coral); box-shadow:0 1px 3px rgba(var(--sh),.12)}
   .sbtn:active{transform:scale(.92)}
+  .sbtn:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
+  .sbtn:disabled{opacity:.3; pointer-events:none}
 
   /* planner */
   #planList input[type=checkbox]{
@@ -374,6 +380,7 @@
     display:grid; place-items:center; transition:all .18s;
   }
   #planList input[type=checkbox]:hover{border-color:var(--coral)}
+  #planList input[type=checkbox]:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
   #planList input[type=checkbox]:checked{background:var(--coral-fill); border-color:var(--coral-fill)}
   #planList input[type=checkbox]:checked::after{
     content:""; width:10px; height:5px; margin-top:-2px;
@@ -398,6 +405,7 @@
     display:inline-flex; align-items:center; justify-content:center}
   .step:hover{color:var(--ink); border-color:var(--dim)}
   .step:disabled{opacity:.3; pointer-events:none}
+  .step:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
   .mv{display:none} /* touch reorder arrows — drag stays the desktop interaction */
 
   /* history */
@@ -453,7 +461,7 @@
   body.zen.idle, body.zen.idle *{cursor:none!important}
   body.zen header, body.zen nav, body.zen .phaseIcons,
   body.zen #setDock, body.zen #shortcutHint{display:none}
-  body.zen #timerCard{min-height:100vh; justify-content:center; padding:0}
+  body.zen #timerCard{min-height:100vh; min-height:100dvh; justify-content:center; padding:0}
   body.zen #ring{width:360px; height:360px}
   body.zen #clock{font-size:72px}
 
@@ -481,7 +489,7 @@
   #tour.top{align-items:flex-start}
   #tourCard{
     background:var(--panel); border:1px solid var(--line); border-radius:20px;
-    padding:24px 28px; max-width:430px; width:100%; max-height:calc(100vh - 32px); overflow-y:auto;
+    padding:24px 28px; max-width:430px; width:100%; max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow-y:auto;
     box-shadow:0 30px 70px -10px rgba(0,0,0,.45);
     animation:rise .35s ease backwards;
   }
@@ -501,7 +509,7 @@
   }
 
   @media (max-width:520px), (pointer:coarse){
-    .mv{display:inline-flex}
+    .mv{display:inline-flex; width:40px; height:40px}
   }
   @media (max-width:520px){
     body{padding:0 14px 40px}
@@ -528,7 +536,7 @@
     .pIcon{padding:8px 4px}
     .wkOnLabel{max-width:118px}
     #tour{padding:14px; align-items:center!important}
-    #tourCard{padding:18px 20px; border-radius:16px; max-height:calc(100vh - 28px)}
+    #tourCard{padding:18px 20px; border-radius:16px; max-height:calc(100vh - 28px); max-height:calc(100dvh - 28px)}
     #tourH{font-size:17px; margin-bottom:6px}
     #tourP{font-size:13.5px; margin-bottom:14px}
   }
@@ -712,7 +720,7 @@
     <h2 class="sec">Today's <b>plan</b></h2>
     <p class="hint">Your list for today — the timer's “Working on” menu pulls from it. Drag to reorder, check off as you go.</p>
     <form class="add" id="planForm">
-      <label class="f">Subject<select id="planSubj"></select></label>
+      <label class="f">Subject<select id="planSubj" required></select></label>
       <label class="f grow">Note<input type="text" id="planText" placeholder="Optional — e.g. chapter 4"></label>
       <label class="f">Pomodoros<input type="number" id="planPoms" min="1" max="20" value="2"></label>
       <button class="btn primary">Add</button>
@@ -741,7 +749,7 @@
     <div id="histStats"></div>
     <div id="histChart"></div>
     <form class="add" id="histForm">
-      <label class="f">Subject<select id="histSubj"></select></label>
+      <label class="f">Subject<select id="histSubj" required></select></label>
       <label class="f">Minutes<input type="number" id="histMins" min="1" max="600" value="25"></label>
       <button class="btn primary">Log</button>
       <textarea id="histNotes" placeholder="Notes — what did you cover? What's next?"></textarea>
@@ -885,7 +893,7 @@ $("importFile").onchange = async () => {
     const data = JSON.parse(await $("importFile").files[0].text());
     for (const k of DATA_KEYS) if (data[k] != null) save(k, data[k]);
     location.reload();
-  } catch { alert("Couldn't read that file — is it a PomoPal backup?"); }
+  } catch { toast("Couldn't read that file — is it a PomoPal backup?"); }
 };
 
 /* ---------- tabs ---------- */
@@ -1066,7 +1074,6 @@ function renderTimer() {
   $("phase").classList.toggle("break", phase !== "focus");
   const focus = phase === "focus";
   $("ring").style.setProperty("--p", Math.max(0, Math.min(100, 100 - remaining / (phaseMins() * 60000) * 100)));
-  $("ring").style.setProperty("--ring-color", focus ? "var(--coral-bright)" : "var(--mint-bright)");
   $("ring").style.setProperty("--glow", focus ? "var(--glow-a)" : "var(--glow-t)");
   $("ring").classList.toggle("running", running);
   $("cFocus").textContent = todayN.focus;
@@ -1094,7 +1101,8 @@ $("phaseIcons").addEventListener("click", async e => {
   if (!btn) return;
   const target = btn.dataset.phase;
   if (target === phase) return;
-  if (running && !(await askConfirm("Discard the current " + phaseLabel[phase].toLowerCase() + " session and switch to " + phaseLabel[target].toLowerCase() + "?"))) return;
+  const noun = phase === "focus" ? " session" : "";
+  if (running && !(await askConfirm("Discard the current " + phaseLabel[phase].toLowerCase() + noun + " and switch to " + phaseLabel[target].toLowerCase() + "?"))) return;
   jumpToPhase(target);
 });
 function stop_() { running = false; clearInterval(tickId); }
@@ -1146,18 +1154,22 @@ $("startBtn").onclick = () => {
   running ? pauseTimer() : startTimer();
 };
 $("resetBtn").onclick = () => { stop_(); remaining = phaseMins() * 60000; saveTimer(); renderTimer(); };
+const requestFS = (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)?.bind(document.documentElement);
+const exitFS = (document.exitFullscreen || document.webkitExitFullscreen)?.bind(document);
 $("zenBtn").onclick = () => {
-  if (document.body.classList.contains("zen")) {
-    document.body.classList.remove("zen");
-    document.exitFullscreen?.();
-  } else {
-    document.body.classList.add("zen");
-    document.documentElement.requestFullscreen?.().catch(() => {});
-  }
+  const zen = document.body.classList.toggle("zen");
+  $("zenBtn").title = zen ? "Exit fullscreen" : "Fullscreen";
+  if (zen) requestFS?.()?.catch?.(() => {});
+  else exitFS?.();
 };
-document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement) document.body.classList.remove("zen", "idle");
-});
+function onFsChange() {
+  if (!(document.fullscreenElement || document.webkitFullscreenElement)) {
+    document.body.classList.remove("zen", "idle");
+    $("zenBtn").title = "Fullscreen";
+  }
+}
+document.addEventListener("fullscreenchange", onFsChange);
+document.addEventListener("webkitfullscreenchange", onFsChange);
 let idleT; // in zen, the cursor fades away after a few still seconds
 addEventListener("mousemove", () => {
   if (!document.body.classList.contains("zen")) return;
@@ -1210,10 +1222,18 @@ for (const inp of document.querySelectorAll("input[type=number]")) {
     const b = el("button", "sbtn", d > 0 ? "+" : "−");
     b.type = "button"; b.tabIndex = -1;
     b.setAttribute("aria-label", (d > 0 ? "Increase " : "Decrease ") + (inp.title || "value"));
-    b.onclick = () => { d > 0 ? inp.stepUp() : inp.stepDown(); inp.dispatchEvent(new Event("change")); };
+    b.onclick = () => { d > 0 ? inp.stepUp() : inp.stepDown(); inp.dispatchEvent(new Event("change")); sync(); };
     return b;
   };
-  wrap.append(mk(-1), inp, mk(1));
+  const minus = mk(-1), plus = mk(1);
+  const sync = () => {
+    minus.disabled = inp.min !== "" && +inp.value <= +inp.min;
+    plus.disabled = inp.max !== "" && +inp.value >= +inp.max;
+  };
+  inp.addEventListener("input", sync);
+  inp.addEventListener("change", sync);
+  wrap.append(minus, inp, plus);
+  sync();
 }
 $("chimeSel").value = settings.chime;
 $("chimeSel").onchange = () => { settings.chime = $("chimeSel").value; save("study.settings", settings); ensureAudio(); chime(); };
@@ -1370,7 +1390,11 @@ $("ytForm").onsubmit = async e => {
   if (list) { queue = []; qIdx = -1; return playTrack("videoseries?list=" + list, "Playlist"); }
   if (id) { queue = [{ id, title: q }]; qIdx = 0; return playTrack(id, q); }
   $("ytResults").replaceChildren(el("div", "trk", "Searching…"));
-  renderTracks(await searchMusic(q), q);
+  const btn = e.submitter || $("ytForm").querySelector("button[type=submit], .btn.primary");
+  const label = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = "Searching…"; }
+  try { renderTracks(await searchMusic(q), q); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = label; } }
 };
 const PRESETS = [...document.querySelectorAll(".chip.yt")].map(b => ({ id: b.dataset.id, title: b.dataset.t }));
 document.querySelectorAll(".chip.yt").forEach((b, i) => b.onclick = () => { queue = PRESETS; qIdx = i; playTrack(b.dataset.id, b.dataset.t); });
@@ -1458,15 +1482,17 @@ function renderGoals() {
     const body = el("div", "grow");
     const text = el("div");
     editableText(text, () => g.text, v => { if (v) g.text = v; save("study.goals", goals); });
-    const meta = el("div", "meta", cur + " / " + g.target + (g.unit === "min" ? " min" : "") + (cur >= g.target ? " · done ✦" : ""));
-    if (g.unit === "min" && g.subjectId) meta.textContent += " · " + (subjById(g.subjectId)?.name ?? "?");
+    const over = g.unit === "count" && cur > g.target;
+    const meta = el("div", "meta", cur + " / ");
+    const tgt = el("span", "ed"); tgt.title = "Click to change target";
+    editableText(tgt, () => String(g.target), v => { const t = +v; if (t > 0) { g.target = t; save("study.goals", goals); } renderGoals(); });
+    meta.append(tgt, (g.unit === "min" ? " min" : "") + (over ? " · +" + (cur - g.target) + " over ✦" : cur >= g.target ? " · done ✦" : ""));
+    if (g.unit === "min" && g.subjectId) meta.append(" · " + (subjById(g.subjectId)?.name ?? "?"));
     if (g.due) {
       const days = Math.ceil((new Date(g.due + "T23:59:59") - Date.now()) / 86400000);
       const span = el("span", days < 0 ? "late" : "", " · due " + new Date(g.due).toLocaleDateString(undefined, { month: "short", day: "numeric" }) + (days < 0 ? " · overdue" : " · " + days + "d left"));
       meta.append(span);
     }
-    meta.classList.add("ed"); meta.title = "click to change target";
-    meta.onclick = () => { const t = +prompt("Target:", g.target); if (t > 0) { g.target = t; save("study.goals", goals); renderGoals(); } };
     const bar = el("div", "bar"), fill = el("i");
     fill.style.width = Math.min(100, cur / g.target * 100) + "%";
     if (cur >= g.target) {
@@ -1484,6 +1510,7 @@ function renderGoals() {
       const minus = el("button", "step", "−"), plus = el("button", "step", "+");
       minus.setAttribute("aria-label", "Decrease progress");
       plus.setAttribute("aria-label", "Increase progress");
+      minus.disabled = g.current <= 0;
       minus.onclick = () => { g.current = Math.max(0, g.current - 1); save("study.goals", goals); renderGoals(); };
       plus.onclick = () => { g.current++; save("study.goals", goals); renderGoals(); };
       li.append(body, minus, plus, x);
@@ -1538,7 +1565,7 @@ function renderHist() {
     while (daysWith.has(cur.toDateString())) { streak++; cur.setDate(cur.getDate() - 1); }
     const stat = (val, lab) => { const c = el("div", "stat"); c.append(el("b", null, val), el("span", null, lab)); return c; };
     $("histStats").append(
-      stat(todayMins + "m", "Today"), stat(weekMins + "m", "Last 7 days"),
+      stat(todayMins + " min", "Today"), stat(weekMins + " min", "Last 7 days"),
       stat(String(hist.length), "Sessions"), stat(streak + (streak === 1 ? " day" : " days"), "Streak"));
     // last 7 days as bars
     const days = [...Array(7)].map((_, i) => {
@@ -1576,7 +1603,7 @@ function renderHist() {
     const subj = el("div", "grow srow");
     const dot = el("i", "dot"); dot.style.background = subjById(h.subjectId)?.color ?? "var(--faint)";
     subj.append(dot, el("span", null, histSubjName(h)));
-    const meta = el("span", "meta", new Date(h.at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) + " · " + h.mins + " min" + (h.auto ? " · pomodoro" : ""));
+    const meta = el("span", "meta", new Date(h.at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) + " · " + h.mins + " min" + (h.auto ? " · auto" : ""));
     const x = el("button", "x", "✕");
     x.onclick = () => {
       const idx = hist.indexOf(h);
@@ -1591,7 +1618,11 @@ function renderHist() {
     ul.append(li);
   }
 }
-$("histSearch").oninput = () => { query = $("histSearch").value.trim().toLowerCase(); renderHist(); };
+let histSearchT;
+$("histSearch").oninput = () => {
+  clearTimeout(histSearchT);
+  histSearchT = setTimeout(() => { query = $("histSearch").value.trim().toLowerCase(); renderHist(); }, 150);
+};
 $("histForm").onsubmit = e => {
   e.preventDefault();
   const subjectId = $("histSubj").value;
