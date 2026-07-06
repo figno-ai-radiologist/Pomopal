@@ -370,7 +370,6 @@
   }
   .sbtn:hover{color:var(--coral); border-color:var(--coral); box-shadow:0 1px 3px rgba(var(--sh),.12)}
   .sbtn:active{transform:scale(.92)}
-  .sbtn:focus-visible{outline:2px solid var(--coral); outline-offset:2px}
   .sbtn:disabled{opacity:.3; pointer-events:none}
 
   /* planner */
@@ -474,6 +473,7 @@
   .miniCard{
     background:var(--panel); border:1px solid var(--line); border-radius:18px;
     padding:22px 24px; max-width:340px; width:100%;
+    max-height:calc(100vh - 44px); max-height:calc(100dvh - 44px); overflow-y:auto;
     box-shadow:0 30px 70px -10px rgba(0,0,0,.4);
     animation:rise .25s ease backwards;
   }
@@ -817,13 +817,19 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 
 /* ---------- toast (with optional undo) + mascot empty states ---------- */
 let toastT;
+let pendingUndos = []; // queued rather than replaced, so a second delete within the window can't silently destroy the first undo
 function toast(msg, undoFn) {
-  $("toastMsg").textContent = msg;
-  $("toastBtn").hidden = !undoFn;
-  $("toastBtn").onclick = () => { $("toast").hidden = true; undoFn?.(); };
+  if (undoFn) pendingUndos.push(undoFn); else pendingUndos = [];
+  $("toastMsg").textContent = pendingUndos.length > 1 ? pendingUndos.length + " items deleted" : msg;
+  $("toastBtn").hidden = !pendingUndos.length;
+  $("toastBtn").onclick = () => {
+    $("toast").hidden = true;
+    const undos = pendingUndos; pendingUndos = [];
+    undos.reverse().forEach(fn => fn());
+  };
   $("toast").hidden = false;
   clearTimeout(toastT);
-  toastT = setTimeout(() => $("toast").hidden = true, 5000);
+  toastT = setTimeout(() => { $("toast").hidden = true; pendingUndos = []; }, 5000);
 }
 const TOMATO = '<svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true"><ellipse cx="23" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(-22 23 10)"/><ellipse cx="41" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(22 41 10)"/><circle cx="32" cy="37" r="25" fill="#FF5A4D"/><path d="M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z" fill="#FFF7F1"/><g stroke="#FFF7F1" stroke-width="3.5" stroke-linecap="round"><path d="M53 37h-4"/><path d="M32 58v-4"/><path d="M11 37h4"/></g><g stroke="#2E1B2E" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M22.5 34q3 3.4 6 0"/><path d="M35.5 34q3 3.4 6 0"/><path d="M26 44q6 4.6 12 0"/></g></svg>';
 function emptyState(text) {
@@ -840,10 +846,13 @@ const todayKey = () => new Date().toDateString(); // a function, not a snapshot 
 const loadObj = k => { const v = load(k, {}); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; };
 const loadArr = k => { const v = load(k, []); return Array.isArray(v) ? v : []; };
 const settings = Object.assign(
-  { focus: 25, short: 5, long: 15, sound: true, auto: false, theme: "light", vol: .5, ambVol: .5, chime: "bell" },
+  { focus: 25, short: 5, long: 15, sound: true, auto: false, theme: "light", vol: .5, ambVol: .5, ytVol: 100, chime: "bell" },
   loadObj("study.settings"));
+for (const [k, def, max] of [["focus", 25, 120], ["short", 5, 60], ["long", 15, 90]])
+  settings[k] = Math.min(max, Math.max(1, +settings[k] || def)); // an imported backup can carry garbage here — keep the clock from ever showing NaN:NaN
 let subjects = loadArr("study.subjects");
 const PALETTE = ["#FF5A4D", "#7CCCA6", "#F2A93B", "#7F9EE8", "#B07BC9", "#E07A9A", "#8FB96F", "#5FC4D4"];
+subjects.forEach((s, i) => { if (!/^#[0-9a-f]{6}$/i.test(s.color || "")) s.color = PALETTE[i % PALETTE.length]; }); // an imported color flows straight into style.background — keep it to a hex value
 const subjById = id => subjects.find(s => s.id === id);
 function addSubject(name) {
   const s = { id: uid(), name, color: PALETTE[subjects.length % PALETTE.length] };
@@ -860,6 +869,7 @@ hist.sort((a, b) => b.at - a.at); // imported backups may arrive unsorted; day g
 let goals = loadArr("study.goals").map(g => g.unit ? g
   : { ...g, id: g.id || uid(), unit: "count", subjectId: null, due: "", createdAt: 0 });
 save("study.plan", plan); save("study.history", hist); save("study.goals", goals);
+save("study.subjects", subjects); save("study.settings", settings); // persist the sanitized values too, not just the migrated ones
 
 /* ---------- header: theme, export, import ---------- */
 const syncMetaTheme = () => $("metaTheme").content = settings.theme === "dark" ? "#241726" : "#F7F3EE";
@@ -988,7 +998,7 @@ function editableText(node, get, set, ghost) {
 }
 
 /* ---------- timer ---------- */
-let phase = "focus", cycles = 0, running = false, endAt = 0, remaining = settings.focus * 60000, tickId = 0, timerTaskId = null, sessionSubjectId = null;
+let phase = "focus", cycles = 0, running = false, endAt = 0, remaining = settings.focus * 60000, tickId = 0, timerTaskId = null, sessionSubjectId = null, sessionMins = null;
 const phaseLabel = { focus: "Focus", short: "Short break", long: "Long break" };
 const phaseMins = () => settings[phase];
 
@@ -1066,7 +1076,7 @@ $("confirmModal").onclick = e => { if (e.target === $("confirmModal")) closeConf
 addEventListener("keydown", e => { if (e.key === "Escape" && !$("confirmModal").hidden) closeConfirm(false); });
 
 function saveTimer() {
-  save("study.timer", { phase, cycles, running, endAt, taskId: timerTaskId, remaining: running ? endAt - Date.now() : remaining });
+  save("study.timer", { phase, cycles, running, endAt, taskId: timerTaskId, remaining: running ? endAt - Date.now() : remaining, subjectId: sessionSubjectId, mins: sessionMins });
 }
 function renderTimer() {
   $("clock").textContent = fmt(remaining);
@@ -1109,13 +1119,14 @@ function stop_() { running = false; clearInterval(tickId); }
 function startTimer() {
   running = true; endAt = Date.now() + remaining;
   sessionSubjectId = plan.find(p => p.id === timerTaskId)?.subjectId ?? null; // snapshot now, so a later delete/complete of the task can't blank out attribution
+  sessionMins = phaseMins(); // snapshot now too — a later duration-setting change can't retroactively inflate the logged length
   clearInterval(tickId); tickId = setInterval(tick, 250);
   saveTimer(); renderTimer();
 }
 function pauseTimer() { remaining = endAt - Date.now(); stop_(); saveTimer(); renderTimer(); }
 function autoLog() { // a finished focus round lands in history, credits its task
   const task = plan.find(p => p.id === timerTaskId && !p.done);
-  hist.unshift({ id: uid(), subjectId: sessionSubjectId, mins: settings.focus, notes: "", at: Date.now(), auto: true });
+  hist.unshift({ id: uid(), subjectId: sessionSubjectId, mins: sessionMins ?? settings.focus, notes: "", at: Date.now(), auto: true });
   save("study.history", hist);
   if (task) {
     task.donePoms = (task.donePoms || 0) + 1;
@@ -1178,7 +1189,7 @@ addEventListener("mousemove", () => {
   idleT = setTimeout(() => document.body.classList.add("idle"), 3000);
 });
 addEventListener("keydown", e => {
-  if (e.code === "Space" && !e.target.matches("input,textarea,button,select") && !e.target.isContentEditable && !$("tab-timer").hidden) {
+  if (e.code === "Space" && !e.target.matches("input,textarea,button,select") && !e.target.isContentEditable && !$("tab-timer").hidden && $("tour").hidden) {
     e.preventDefault(); $("startBtn").click();
   }
 });
@@ -1204,7 +1215,7 @@ function renderTaskSel() {
 for (const [id, key] of [["dFocus", "focus"], ["dShort", "short"], ["dLong", "long"]]) {
   $(id).value = settings[key];
   $(id).onchange = () => {
-    settings[key] = Math.max(1, +$(id).value || settings[key]);
+    settings[key] = Math.min(+$(id).max, Math.max(1, +$(id).value || settings[key]));
     $(id).value = settings[key];
     save("study.settings", settings);
     if (!running && key === phase) { remaining = phaseMins() * 60000; saveTimer(); renderTimer(); }
@@ -1270,13 +1281,13 @@ $("ambVolSlider").oninput = () => {
 
 /* ---------- focus music: search via public piped/invidious apis, hidden yt iframe as audio engine ---------- */
 /* ponytail: public instances rot — when search dies, refresh this list (piped.video / api.invidious.io have current ones) */
-const piped = host => q => fetch(host + "/search?q=" + encodeURIComponent(q) + "&filter=videos")
+const piped = host => q => fetch(host + "/search?q=" + encodeURIComponent(q) + "&filter=videos", { signal: AbortSignal.timeout(4000) })
   .then(r => r.json())
   .then(j => j.items.filter(i => i.type === "stream")
     .map(i => ({ id: (i.url.match(/v=([\w-]{11})/) || [])[1], title: i.title, by: i.uploaderName, secs: i.duration })));
-const invid = host => q => fetch(host + "/api/v1/search?q=" + encodeURIComponent(q) + "&type=video")
+const invid = host => q => fetch(host + "/api/v1/search?q=" + encodeURIComponent(q) + "&type=video", { signal: AbortSignal.timeout(4000) })
   .then(r => r.json())
-  .then(j => j.map(i => ({ id: i.videoId, title: i.title, by: i.author, secs: i.lengthSeconds })));
+  .then(j => j.map(i => ({ id: /^[\w-]{11}$/.test(i.videoId) ? i.videoId : null, title: i.title, by: i.author, secs: i.lengthSeconds })));
 const MUSIC_APIS = [
   piped("https://api.piped.private.coffee"),
   piped("https://pipedapi.kavin.rocks"),
@@ -1320,7 +1331,7 @@ $("yt").addEventListener("load", () => { // handshake: makes the player stream p
   }, 400);
 });
 addEventListener("message", e => {
-  if (e.source !== $("yt").contentWindow || typeof e.data !== "string") return;
+  if (e.source !== $("yt").contentWindow || e.origin !== "https://www.youtube.com" || typeof e.data !== "string") return;
   let d; try { d = JSON.parse(e.data); } catch { return; }
   if (d.event !== "infoDelivery" || !d.info) return;
   if (d.info.videoData?.isLive != null) npLive = d.info.videoData.isLive;
@@ -1337,7 +1348,7 @@ addEventListener("message", e => {
   if (d.info.playerState != null) {
     npPlaying = d.info.playerState === 1 || d.info.playerState === 3;
     setPP(npPlaying);
-    if (d.info.playerState === 0 && lastState !== 0) step(1); // ended → next in queue
+    if (d.info.playerState === 0 && lastState !== 0 && queue.length > 1 && qIdx >= 0) step(1); // ended → next in queue (playlists/singles auto-advance or stop on their own — an extra step() here would double-skip)
     lastState = d.info.playerState;
   }
 });
@@ -1358,7 +1369,9 @@ $("ppBtn").onclick = () => {
 $("seekBar").onpointerdown = () => seeking = true;
 $("seekBar").oninput = () => { if (seeking) $("npNow").textContent = fmtSec(+$("seekBar").value); };
 $("seekBar").onchange = () => { ytCmd("seekTo", [+$("seekBar").value, true]); seeking = false; };
-$("ytVol").oninput = () => ytCmd("setVolume", [+$("ytVol").value]);
+$("seekBar").onpointerup = $("seekBar").onpointercancel = () => { seeking = false; }; // a click without a drag never fires "change", so this is the only reset for that path
+$("ytVol").value = settings.ytVol;
+$("ytVol").oninput = () => { settings.ytVol = +$("ytVol").value; save("study.settings", settings); ytCmd("setVolume", [settings.ytVol]); };
 $("vidBtn").onclick = () => {
   $("yt").classList.toggle("audio");
   $("vidBtn").classList.toggle("on", !$("yt").classList.contains("audio"));
@@ -1368,7 +1381,7 @@ function renderTracks(list, q) {
   if (!list) {
     const row = el("div", "trk", "Search unreachable right now — ");
     const a = el("a", null, "open on YouTube ↗");
-    a.href = "https://www.youtube.com/results?search_query=" + encodeURIComponent(q); a.target = "_blank";
+    a.href = "https://www.youtube.com/results?search_query=" + encodeURIComponent(q); a.target = "_blank"; a.rel = "noopener";
     row.append(a, el("span", "a", " then paste the link here"));
     return box.append(row);
   }
@@ -1387,8 +1400,8 @@ $("ytForm").onsubmit = async e => {
   if (!q) return;
   const list = q.match(/[?&]list=([\w-]+)/)?.[1];
   const id = (q.match(/(?:youtu\.be\/|[?&]v=|\/live\/|\/shorts\/|\/embed\/)([\w-]{11})/) || q.match(/^([\w-]{11})$/))?.[1];
+  if (id) { queue = [{ id, title: q }]; qIdx = 0; return playTrack(id, q); } // a v= id wins even if the URL also carries &list= (e.g. an auto-generated mix) — the pasted video is what the user meant
   if (list) { queue = []; qIdx = -1; return playTrack("videoseries?list=" + list, "Playlist"); }
-  if (id) { queue = [{ id, title: q }]; qIdx = 0; return playTrack(id, q); }
   $("ytResults").replaceChildren(el("div", "trk", "Searching…"));
   const btn = e.submitter || $("ytForm").querySelector("button[type=submit], .btn.primary");
   const label = btn?.textContent;
@@ -1412,6 +1425,7 @@ function renderPlan() {
     li.ondragstart = () => { dragI = i; li.classList.add("dragging"); };
     li.ondragend = () => {
       li.classList.remove("dragging");
+      dragI = null; // a cancelled drag (Escape, dropped outside) must not leave a stale index for some unrelated later drop to consume
       for (const x of document.querySelectorAll("#planList .dragOver")) x.classList.remove("dragOver");
     };
     li.ondragover = e => { e.preventDefault(); if (dragI !== i) li.classList.add("dragOver"); };
@@ -1460,10 +1474,13 @@ $("planForm").onsubmit = e => {
   save("study.plan", plan); $("planText").value = ""; renderPlan();
 };
 $("clearDone").onclick = () => {
-  const before = plan;
+  const removed = plan.map((p, i) => [p, i]).filter(([p]) => p.done);
   plan = plan.filter(p => !p.done);
   save("study.plan", plan); renderPlan();
-  toast("Done tasks cleared", () => { plan = before; save("study.plan", plan); renderPlan(); });
+  toast("Done tasks cleared", () => {
+    for (const [p, i] of removed) plan.splice(Math.min(i, plan.length), 0, p); // re-insert into the CURRENT array, not a saved reference — so a task added during the undo window survives
+    save("study.plan", plan); renderPlan();
+  });
 };
 
 /* ---------- goals ---------- */
@@ -1642,6 +1659,8 @@ renderPlan(); renderGoals(); renderHist();
     cycles = Number.isInteger(t.cycles) ? t.cycles : 0;
     remaining = Number.isFinite(t.remaining) ? t.remaining : phaseMins() * 60000;
     timerTaskId = t.taskId ?? null;
+    sessionSubjectId = t.subjectId ?? (plan.find(p => p.id === timerTaskId)?.subjectId ?? null); // rehydrate the snapshot too — a reload must not blank out attribution any more than a delete/complete does
+    sessionMins = Number.isFinite(t.mins) ? t.mins : phaseMins();
     renderTaskSel();
     if (t.running && Number.isFinite(t.endAt)) {
       remaining = t.endAt - Date.now();

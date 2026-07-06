@@ -2,7 +2,7 @@
 
 **Focus with a friendly rhythm.**
 
-PomoPal is a pomodoro-based study companion in a single HTML file — no build step, no dependencies, no backend, no account. Open `index.html` in a browser and start focusing. Everything saves locally to your browser, and a skippable guide walks you through it on first visit.
+PomoPal is a pomodoro-based study companion built as one HTML file (plus a small `apple-touch-icon.png` for iOS home-screen installs) — no build step, no dependencies, no backend, no account. Open `index.html` in a browser and start focusing. Everything saves locally to your browser, and a skippable guide walks you through it on first visit.
 
 ## Features
 
@@ -13,7 +13,7 @@ PomoPal is a pomodoro-based study companion in a single HTML file — no build s
 - **Working on** sits right under the clock as a compact subject pill; tap it to pick from today's planned tasks — finished sessions log themselves and tick off that task's pomodoro count
 - Survives page reloads mid-session, counts down in the tab title, catches up instantly when a background tab wakes
 - Chime (three styles + volume), desktop notification when a phase ends in a background tab
-- Auto-continue mode, `Space` to start/pause, and a fullscreen mode (top-right) that hides the cursor while you work
+- Auto-continue mode, `Space` to start/pause (while the Timer tab is showing and the guide isn't open), and a fullscreen mode (top-right) that hides the cursor while you work
 - Settings, ambience, and focus music live in a collapsible sheet pinned to the bottom of the screen
 
 ### 📋 Planner
@@ -28,7 +28,7 @@ PomoPal is a pomodoro-based study companion in a single HTML file — no build s
 
 ### 📖 Session log
 - Every finished focus session lands here on its own; log longer sessions by hand with notes
-- **Streak counter** and a **7-day bar chart**, plus today / week / total stat cards
+- **Streak counter** and a **7-day bar chart**, plus stat cards for today, the last 7 days, total sessions, and streak
 - Grouped by day (Today, Yesterday, …), searchable, filterable by color-coded subject chips
 - Every delete shows an **Undo** toast — nothing is lost to a mis-tap
 
@@ -60,13 +60,14 @@ Your data lives in `localStorage` under `study.*` keys — export a backup from 
 - **Brand tokens** live in the CSS variable block at the top of `index.html` — a rebrand is a one-block edit.
 - Music search uses public Piped/Invidious instances (keyless, CORS-open) with a fallback chain; playback uses a hidden YouTube iframe driven via the postMessage API. Public instances rotate — if search dies, refresh the instance list near `MUSIC_APIS`.
 - The timer computes from wall-clock timestamps, so it stays accurate through tab throttling and reloads.
-- Icons are inline SVGs with Material geometry — no icon font, nothing for iOS to render as emoji.
+- Most icons are inline SVGs with Material geometry (no icon font); a handful of controls use plain text glyphs (◐, ✕, ↑↓, ✦) chosen to be emoji-safe on iOS.
 
 ## Known platform limits
 
 - Chimes can't sound while a phone is locked (the timer itself catches up correctly).
 - YouTube/ambience audio pauses in background mobile tabs (browser policy).
 - Desktop notifications require permission; on Android they'd need a service worker, so they're skipped gracefully there.
+- iPhone Safari has no Fullscreen API for arbitrary elements — zen mode still applies its layout there, just without hiding the browser chrome.
 
 ## License
 
