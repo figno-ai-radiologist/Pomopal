@@ -67,6 +67,8 @@
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{animation:none!important; transition:none!important; scroll-behavior:auto!important}
   }
+  /* visually-hidden: off-screen but announced by AT (§5 timer live region) */
+  .vh{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
   header{width:100%; max-width:680px; padding:34px 0 22px; display:flex; align-items:center; justify-content:space-between; animation:rise var(--dur-entrance) .05s ease-out backwards}
   header h1{font-family:var(--display); font-size:24px; font-weight:800; letter-spacing:.01em; display:flex; align-items:center; gap:10px}
   header h1 svg{flex:none; filter:drop-shadow(0 3px 6px rgba(255,90,77,.28))}
@@ -128,6 +130,7 @@
   .pIcon svg{flex:none}
   .pIcon b{font-family:var(--mono); font-size:13.5px; font-weight:500; color:inherit}
   .pIcon[aria-current="true"]{color:var(--coral)}
+  .pIcon[aria-current="true"] b{font-weight:700} /* non-color signal for the active phase (§5 F) — color alone was the only cue */
   .wkOn{position:relative; display:inline-flex; margin-top:2px}
   .wkOnLabel{
     pointer-events:none; display:inline-block; max-width:150px;
@@ -135,7 +138,7 @@
     padding:5px 14px; font-family:var(--sans); font-size:12px; font-weight:600; color:var(--dim);
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .wkOn select{position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; padding:0; border:none; box-shadow:none}
+  .wkOn select{position:absolute; inset:-8px 0; opacity:0; cursor:pointer; width:100%; height:calc(100% + 16px); padding:0; border:none; box-shadow:none} /* negative-inset hit expansion: ~29px visual pill → ~45px tall hit target (§5) */
   .btnrow{display:flex; align-items:center; justify-content:center; gap:14px; width:100%; max-width:340px; margin:16px 0 10px}
   .cbtn{
     all:unset; cursor:pointer; width:44px; height:44px; border-radius:50%; flex:none;
@@ -260,7 +263,7 @@
   .trk .t{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink)}
   .trk .a{max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .trk .d{color:var(--dim); flex:none}
-  .trk.playing .t, .trk.playing{color:var(--coral)}
+  .trk.playing .t, .trk.playing{color:var(--coral); font-weight:600} /* non-color signal for the playing track (§5 F) */
   .trk a{color:var(--coral)}
   #player{width:100%; display:flex; flex-direction:column; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px 14px;
     box-shadow:0 1px 2px rgba(var(--sh),.05), 0 12px 26px -18px rgba(var(--sh),.25)}
@@ -336,6 +339,7 @@
   .meta .late{color:var(--danger)}
   .ed{cursor:text}
   .ed:hover{text-decoration:underline dotted var(--faint); text-underline-offset:3px}
+  .amtEdit{display:inline-block; padding:11px 6px; margin:-11px -6px} /* Target amount-edit span: cbHit pattern — padded invisible hit area, visual size unchanged. No explicit width/height here, so the page's border-box reset doesn't collapse it the way plain .cbHit needed correcting (§5) */
   .ghost{color:var(--faint); font-style:italic; font-size:14px}
   .x{all:unset; cursor:pointer; color:var(--dim); font-family:var(--mono); padding:12px 14px; margin:-8px -10px}
   .x:hover{color:var(--danger)}
@@ -435,7 +439,7 @@
     background:var(--mint-bright); color:#1B4A38; font-family:var(--sans); font-weight:700; font-size:13px;
     /* fixed literal, not var(--mint) — --mint and --mint-bright are identical in dark theme, which would make this text invisible on its own background */
   }
-  .cbHit{display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; padding:9px; margin:-9px; flex:none; cursor:pointer} /* padded invisible hit area — 40px tap target around a 22px checkbox (§5) */
+  .cbHit{box-sizing:content-box; display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; padding:9px; margin:-9px; flex:none; cursor:pointer} /* padded invisible hit area — 40px tap target around a 22px checkbox (§5). box-sizing:content-box override is load-bearing: under the page's global border-box reset, width+padding would collapse to 22px total instead of 40px (Pass 7 audit fix — the pattern was non-functional since Pass 3) */
 
   /* goals */
   .bar{height:4px; background:var(--line); border-radius:2px; margin-top:8px; overflow:hidden}
@@ -543,17 +547,35 @@
   #tourP{color:var(--dim); font-size:15px; line-height:1.6; margin-bottom:18px}
   #tourNav{display:flex; align-items:center; gap:14px}
   #tourNav .btn{font-size:11px; padding:8px 18px}
-  #tourDots{flex:1; display:flex; justify-content:center; gap:7px}
-  #tourDots i{width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer}
-  #tourDots i.on{background:var(--coral)}
+  #tourDots{flex:1; display:flex; justify-content:center; gap:17px}
+  #tourDots button{all:unset; position:relative; width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer}
+  #tourDots button::before{content:""; position:absolute; inset:-8.5px} /* padded hit box around the 7px visual — ≥24px tap target (§5) */
+  #tourDots button.on{background:var(--coral)}
+  #tourDots button:focus-visible{outline:2px solid var(--coral); outline-offset:3px}
   .tourGlow{
     position:relative; z-index:90; /* below #tour's 100 — the card must always stay on top */
     outline:2px solid var(--coral); outline-offset:6px; border-radius:10px;
     box-shadow:0 0 0 9999px rgba(20,10,20,.5); /* the actual dimming: a cutout around the target, not a layer over it */
   }
 
+  /* Pass 7 §5: hit-target rules live here — coarse pointers get comfortable tap targets regardless of
+     viewport width (audit L7: a >520px tablet with a coarse pointer previously got none of these).
+     Layout/font rules stay width-only in the next block; desktop fine-pointer sizing is unaffected. */
   @media (max-width:520px), (pointer:coarse){
     .mv{display:inline-flex; width:40px; height:40px}
+    .step{width:40px; height:40px}
+    .x{padding:14px 16px; margin:-10px -12px}
+    .pbtn{padding:13px 10px}
+    #ppBtn{width:40px; height:40px}
+    .iconbtn{width:40px; height:40px; line-height:40px; font-size:17px}
+    .chip{min-height:40px}
+    #toggles input{width:38px; height:22px}
+    #toggles input::before{width:18px; height:18px}
+    #toggles input:checked::before{transform:translateX(16px)}
+    .pIcon{padding:8px 4px}
+    /* range thumb enlargement where practical — native thumbs resist much more than this cross-browser */
+    input[type=range]::-webkit-slider-thumb{width:20px; height:20px}
+    input[type=range]::-moz-range-thumb{width:20px; height:20px; border:none}
   }
   @media (max-width:520px){
     body{padding:0 14px calc(45px + 16px + env(safe-area-inset-bottom, 0px))}
@@ -569,26 +591,21 @@
     #startBtn{padding:14px 22px; font-size:14px}
     /* 16px floor on form controls so iOS doesn't auto-zoom on focus */
     select, input[type=date], form.add input[type=number], #durations input, #ytForm input, #histTools .search{font-size:16px}
-    /* comfortable tap targets */
-    .step{width:40px; height:40px}
-    .x{padding:14px 16px; margin:-10px -12px}
-    .pbtn{padding:12px 10px}
-    .iconbtn{width:40px; height:40px; line-height:40px; font-size:17px}
-    .chip{padding:8px 14px}
-    #toggles input{width:38px; height:22px}
-    #toggles input::before{width:18px; height:18px}
-    #toggles input:checked::before{transform:translateX(16px)}
     #histStats{grid-template-columns:repeat(2,1fr)}
     #histStats .stat b{font-size:19px}
     .phaseIcons{gap:16px; margin-top:14px}
-    .pIcon{padding:8px 4px}
     .wkOnLabel{max-width:118px}
     #tour{padding:14px; align-items:center!important}
     #tourCard{padding:18px 20px; border-radius:16px; max-height:calc(100vh - 28px); max-height:calc(100dvh - 28px)}
     #tourH{font-size:17px; margin-bottom:6px}
     #tourP{font-size:13.5px; margin-bottom:14px}
     /* Pass 3: modest row trims — the two-line note clamp is the real compactness win, this just tightens the rest */
-    #planList li .rowMain{padding:12px 14px; gap:12px}
+    /* padding trimmed further than Pass 3's baseline (gap stays 12px — .x's -12px hit-margin and
+       .cbHit's -9px hit-margin both need a gap at least that wide, or their invisible padded hit
+       zones overlap the neighboring control's own hit zone). The corrected cbHit hit-target (was
+       silently inert at 22px pre-Pass-7, see .cbHit above) now genuinely claims 40px, so trimming
+       padding reclaims width to keep the row from growing at 320px (§5 A). */
+    #planList li .rowMain{padding:12px 7px; gap:12px}
     .srow{gap:6px}
   }
 </style>
@@ -598,20 +615,20 @@
 <header>
   <h1><svg width="27" height="27" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="23" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(-22 23 10)"/><ellipse cx="41" cy="10" rx="8" ry="4.5" fill="#7CCCA6" transform="rotate(22 41 10)"/><circle cx="32" cy="37" r="25" fill="#FF5A4D"/><path d="M32 37 L32 14 A23 23 0 0 1 46.8 19.4 Z" fill="#FFF7F1"/><g stroke="#FFF7F1" stroke-width="3.5" stroke-linecap="round"><path d="M53 37h-4"/><path d="M32 58v-4"/><path d="M11 37h4"/></g><g stroke="#2E1B2E" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M22.5 34q3 3.4 6 0"/><path d="M35.5 34q3 3.4 6 0"/><path d="M26 44q6 4.6 12 0"/></g></svg><span>Pomo<b>Pal</b></span></h1>
   <div id="hdrRight">
-    <button class="iconbtn" id="helpBtn" title="Show the guide">?</button>
-    <button class="iconbtn" id="themeBtn" title="Light / dark">◐</button>
+    <button class="iconbtn" id="helpBtn" title="Show the guide" aria-label="Open the guide">?</button>
+    <button class="iconbtn" id="themeBtn" title="Light / dark" aria-label="Toggle light or dark theme">◐</button>
   </div>
 </header>
 
 <nav id="tabs" role="tablist">
   <span id="navPill" aria-hidden="true"></span>
-  <button role="tab" aria-selected="true" data-tab="timer">Timer</button>
-  <button role="tab" aria-selected="false" data-tab="plan">Plan</button>
-  <button role="tab" aria-selected="false" data-tab="hist">History</button>
+  <button role="tab" id="navTabTimer" aria-selected="true" aria-controls="tab-timer" data-tab="timer" tabindex="0">Timer</button>
+  <button role="tab" id="navTabPlan" aria-selected="false" aria-controls="tab-plan" data-tab="plan" tabindex="-1">Plan</button>
+  <button role="tab" id="navTabHist" aria-selected="false" aria-controls="tab-hist" data-tab="hist" tabindex="-1">History</button>
 </nav>
 
 <main>
-  <section id="tab-timer">
+  <section id="tab-timer" role="tabpanel" aria-labelledby="navTabTimer">
     <div id="timerCard">
       <div id="ring">
         <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -676,7 +693,7 @@
     </div>
   </section>
 
-  <section id="tab-plan" hidden>
+  <section id="tab-plan" hidden role="tabpanel" aria-labelledby="navTabPlan">
     <div class="setTabs" id="planSub" role="tablist" aria-label="Plan view">
       <span class="setPill" aria-hidden="true"></span>
       <button type="button" class="setTab" id="planTabToday" data-psub="today" role="tab" aria-selected="true" aria-controls="planPanelToday" tabindex="0">Today</button>
@@ -715,7 +732,7 @@
     </div>
   </section>
 
-  <section id="tab-hist" hidden>
+  <section id="tab-hist" hidden role="tabpanel" aria-labelledby="navTabHist">
     <h2 class="sec">Session <b>log</b></h2>
     <p class="hint">Focus sessions land here automatically — or log one by hand.</p>
     <div id="histStats"></div>
@@ -743,14 +760,14 @@
 <div id="setDock">
 <div class="setDockInner">
 <div class="setCard">
-  <div class="setTabs" id="setTabs">
+  <div class="setTabs" id="setTabs" role="tablist" aria-label="Settings">
     <span class="setPill" aria-hidden="true"></span>
-    <button type="button" class="setTab" data-set="timer" aria-selected="true">Timer</button>
-    <button type="button" class="setTab" data-set="sound" aria-selected="false">Sound</button>
-    <button type="button" class="setTab" data-set="music" aria-selected="false">Music</button>
+    <button type="button" class="setTab" id="setTabTimer" data-set="timer" role="tab" aria-selected="true" aria-controls="setPanelTimer" tabindex="0">Timer</button>
+    <button type="button" class="setTab" id="setTabSound" data-set="sound" role="tab" aria-selected="false" aria-controls="setPanelSound" tabindex="-1">Sound</button>
+    <button type="button" class="setTab" id="setTabMusic" data-set="music" role="tab" aria-selected="false" aria-controls="setPanelMusic" tabindex="-1">Music</button>
   </div>
 
-  <div class="setPanel" data-set="timer">
+  <div class="setPanel" id="setPanelTimer" data-set="timer" role="tabpanel" aria-labelledby="setTabTimer">
     <div id="durations">
       <label>Focus<input type="number" id="dFocus" min="1" max="120"></label>
       <label>Short break<input type="number" id="dShort" min="1" max="60"></label>
@@ -762,7 +779,7 @@
     </div>
   </div>
 
-  <div class="setPanel" data-set="sound" hidden>
+  <div class="setPanel" id="setPanelSound" data-set="sound" role="tabpanel" aria-labelledby="setTabSound" hidden>
     <div id="toggles">
       <label><input type="checkbox" id="tSound">Sound</label>
     </div>
@@ -788,7 +805,7 @@
     </div>
   </div>
 
-  <div class="setPanel" data-set="music" hidden>
+  <div class="setPanel" id="setPanelMusic" data-set="music" role="tabpanel" aria-labelledby="setTabMusic" hidden>
     <form id="ytForm">
       <input type="text" id="ytQ" placeholder="Search tracks or paste a YouTube link">
       <button class="btn primary">Search</button>
@@ -857,6 +874,9 @@
   <button type="button" id="toastBtn" hidden>Undo</button>
 </div>
 
+<!-- §5: one polite live region for the timer — start/pause/reset/phase change/completion, never per-tick -->
+<div id="timerAnnounce" class="vh" aria-live="polite" aria-atomic="true"></div>
+
 <div id="tour" hidden>
   <div id="tourCard">
     <div id="tourStep"></div>
@@ -923,17 +943,34 @@ $("goalList").addEventListener("animationend", e => { if (e.animationName === "b
    call resetGestures() safely even at boot, well before the gesture handlers below are wired up ---------- */
 const planListEl = $("planList");
 let gesture = null, openTray = null, suppressNextClick = false;
+// Pass 7 correction: a row completing elsewhere calls renderPlan(), which replaceChildren()s the whole
+// list — including this tray's row, if it's a *different* row that just got checked off. The immediate
+// .focus() below only works when the row node it's targeting is still attached; when the close is a
+// side-effect of a rebuild that already destroyed it, focus falls through to document.body instead. So
+// we also stash which task's tray we're leaving focus-in-progress for, and renderPlan() picks it back up
+// on the freshly-built node once the rebuild is done.
+let pendingRowFocus = null;
 function closeTray() {
   if (openTray == null) return;
   const rowEl = planListEl.querySelector('li[data-id="' + openTray + '"]');
   if (rowEl) {
+    // §5 C: a tray closing with focus inside it must not strand that focus in a now-hidden control
+    const tray = rowEl.querySelector(".rowTray");
+    const hadFocusInside = !!tray?.contains(document.activeElement);
     rowEl.classList.remove("trayOpen");
+    tray?.setAttribute("aria-hidden", "true");
     const rowMain = rowEl.querySelector(".rowMain");
     if (rowMain) rowMain.style.transform = "";
-    const tray = rowEl.querySelector(".rowTray");
     if (tray) tray.style.visibility = "";
+    if (hadFocusInside) { rowEl.querySelector('input[type=checkbox]')?.focus(); pendingRowFocus = openTray; }
   }
   openTray = null;
+}
+/* §5 C: post-delete focus — the next row's primary control, else the add-form's first field when the list empties */
+function focusAfterDelete(ulId, index, formFieldId, primarySel) {
+  const rows = [...$(ulId).children].filter(li => !li.classList.contains("empty") && !li.classList.contains("daysep"));
+  const target = rows[Math.min(index, rows.length - 1)]?.querySelector(primarySel);
+  (target || $(formFieldId)).focus();
 }
 function resetGestures() { // called on every renderPlan(), plus tab/subsection changes — no open tray or live drag survives a rebuild or navigation
   if (gesture) {
@@ -1027,9 +1064,11 @@ function showTab(name) {
   const tabs = [...document.querySelectorAll("#tabs [data-tab]")];
   if (name === "goals") { showPlanSub("targets"); name = "plan"; save("study.tab", "plan"); } // permanent fallback for pre-restructure backups/links (D5) — persists the remap so it's consumed once, not re-fired (and re-clobbering planSub) on every boot
   else if (!tabs.some(b => b.dataset.tab === name)) name = "timer";
-  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  tabs.forEach(b => { const sel = b.dataset.tab === name; b.setAttribute("aria-selected", sel); b.tabIndex = sel ? 0 : -1; });
   $("tabs").style.setProperty("--navi", Math.max(0, tabs.findIndex(b => b.dataset.tab === name)));
   for (const s of document.querySelectorAll("main section")) s.hidden = s.id !== "tab-" + name;
+  // §5 C: the dock is about to close (D11) — a focus left inside it would otherwise be stranded once it hides
+  if ($("setDock").contains(document.activeElement)) $("tabs").querySelector(`[data-tab="${name}"]`)?.focus();
   $("setDock").classList.remove("open"); // D11: the dock is global now — top-level tab navigation always closes it
   $("setHandleBtn").setAttribute("aria-expanded", "false");
   resetGestures(); // Pass 3: a top-level tab change closes any open Today tray
@@ -1044,7 +1083,7 @@ function showPlanSub(name, persist = true) {
 }
 function showSetTab(name, openDock) {
   const tabs = [...document.querySelectorAll("#setTabs [data-set]")];
-  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.set === name));
+  tabs.forEach(b => { const sel = b.dataset.set === name; b.setAttribute("aria-selected", sel); b.tabIndex = sel ? 0 : -1; });
   $("setTabs").style.setProperty("--seti", Math.max(0, tabs.findIndex(b => b.dataset.set === name)));
   for (const p of document.querySelectorAll(".setPanel")) p.hidden = p.dataset.set !== name;
   if (openDock) { $("setDock").classList.add("open"); $("setHandleBtn").setAttribute("aria-expanded", "true"); }
@@ -1056,6 +1095,19 @@ $("setHandleBtn").onclick = () => {
 $("setTabs").addEventListener("click", e => {
   const btn = e.target.closest("[data-set]");
   if (btn) showSetTab(btn.dataset.set);
+});
+$("setTabs").addEventListener("keydown", e => { // §5: roving-tabindex tablist, mirrors #planSub — never persists (dock tab choice isn't a stored setting)
+  const sets = ["timer", "sound", "music"];
+  let i = sets.indexOf(e.target.dataset.set);
+  if (i < 0) return;
+  if (e.key === "ArrowRight") i = (i + 1) % sets.length;
+  else if (e.key === "ArrowLeft") i = (i - 1 + sets.length) % sets.length;
+  else if (e.key === "Home") i = 0;
+  else if (e.key === "End") i = sets.length - 1;
+  else return;
+  e.preventDefault();
+  showSetTab(sets[i]);
+  $("setTabs").querySelector(`[data-set="${sets[i]}"]`).focus();
 });
 showSetTab("timer");
 $("planSub").addEventListener("click", e => {
@@ -1081,6 +1133,20 @@ $("tabs").addEventListener("click", e => {
   showTab(btn.dataset.tab);
   save("study.tab", btn.dataset.tab);
 });
+$("tabs").addEventListener("keydown", e => { // §5: roving-tabindex tablist with wrap, matches the planSub/setTabs pattern
+  const tnames = ["timer", "plan", "hist"];
+  let i = tnames.indexOf(e.target.dataset.tab);
+  if (i < 0) return;
+  if (e.key === "ArrowRight") i = (i + 1) % tnames.length;
+  else if (e.key === "ArrowLeft") i = (i - 1 + tnames.length) % tnames.length;
+  else if (e.key === "Home") i = 0;
+  else if (e.key === "End") i = tnames.length - 1;
+  else return;
+  e.preventDefault();
+  showTab(tnames[i]);
+  save("study.tab", tnames[i]);
+  $("tabs").querySelector(`[data-tab="${tnames[i]}"]`).focus();
+});
 showTab(load("study.tab", "timer"));
 
 /* ---------- subject selects ---------- */
@@ -1098,14 +1164,18 @@ function refreshSubjSelects() {
   fillSubjSelect($("goalSubj"), { none: "Any subject" });
 }
 /* custom "new subject" modal — replaces the native prompt() dialog */
-let subjModalTarget = null;
+let subjModalTarget = null, subjModalInvoker = null;
 function openSubjModal(targetId) {
   subjModalTarget = targetId;
+  subjModalInvoker = document.activeElement; // §5: restore-to-invoker on close
   $("subjInput").value = "";
   $("subjModal").hidden = false;
   $("subjInput").focus();
 }
-function closeSubjModal() { $("subjModal").hidden = true; subjModalTarget = null; }
+function closeSubjModal() {
+  $("subjModal").hidden = true; subjModalTarget = null;
+  subjModalInvoker?.focus(); subjModalInvoker = null;
+}
 $("subjCancel").onclick = closeSubjModal;
 $("subjModal").onclick = e => { if (e.target === $("subjModal")) closeSubjModal(); };
 addEventListener("keydown", e => { if (e.key === "Escape" && !$("subjModal").hidden) closeSubjModal(); });
@@ -1132,6 +1202,7 @@ refreshSubjSelects();
 function editableText(node, get, set, ghost) {
   node.classList.add("ed");
   node.tabIndex = 0; // Pass 5 (Fable-sanctioned component fix): keyboard-reachable even at rest, not just while editing
+  let cancelling = false; // §5 C: Escape-cancel flag — tells the next blur to restore rather than commit
   const paint = () => { const v = get(); node.textContent = v || ghost || ""; node.classList.toggle("ghost", !v && !!ghost); };
   paint();
   const open = () => {
@@ -1141,8 +1212,19 @@ function editableText(node, get, set, ghost) {
     node.focus();
   };
   node.onclick = open;
-  node.onblur = () => { node.contentEditable = "false"; set(node.textContent.trim()); paint(); };
+  node.onblur = () => {
+    node.contentEditable = "false";
+    if (cancelling) { cancelling = false; paint(); return; } // restore prior value, no commit
+    set(node.textContent.trim()); paint();
+  };
   node.onkeydown = e => {
+    if (e.key === "Escape" && node.isContentEditable) {
+      e.preventDefault();
+      cancelling = true;
+      node.blur(); // onblur restores via paint() and skips set() — Enter/blur commit semantics below are untouched
+      node.focus(); // keep focus on the (now read-only) node instead of stranding it at document/body
+      return;
+    }
     if (e.key !== "Enter" || e.shiftKey) return;
     e.preventDefault();
     node.isContentEditable ? node.blur() : open(); // at rest: Enter opens, same as click; while editing: Enter commits, unchanged
@@ -1213,9 +1295,10 @@ if (todayN.rest != null && todayN.short == null) todayN = { d: todayN.d, focus: 
 if (todayN.d !== todayKey()) todayN = { d: todayKey(), focus: 0, short: 0, long: 0 };
 
 /* discard-confirmation dialog: reused by anything that needs a yes/no before a destructive action */
-let confirmResolve = null;
+let confirmResolve = null, confirmInvoker = null;
 function askConfirm(msg) {
   return new Promise(res => {
+    confirmInvoker = document.activeElement; // §5: restore-to-invoker on close
     $("confirmMsg").textContent = msg;
     $("confirmModal").hidden = false;
     $("confirmCancel").focus(); // default to the non-destructive choice
@@ -1236,6 +1319,7 @@ function closeConfirm(result) {
   $("confirmModal").hidden = true;
   confirmResolve?.(result);
   confirmResolve = null;
+  confirmInvoker?.focus(); confirmInvoker = null;
 }
 $("confirmCancel").onclick = () => closeConfirm(false);
 $("confirmOk").onclick = () => closeConfirm(true);
@@ -1261,6 +1345,9 @@ function renderTimer() {
   $("startBtn").classList.toggle("playing", running);
   document.title = running ? fmt(remaining) + " · " + phaseLabel[phase] : "PomoPal";
 }
+/* §5 D: one polite live region, exactly five events (start/pause/reset/phase change/completion) — never per-tick */
+const announceTimer = msg => { $("timerAnnounce").textContent = msg; };
+const minuteWord = n => n + " minute" + (n === 1 ? "" : "s");
 function jumpToPhase(target) { // direct phase switch — like skip, but to any phase, not just the next one
   if (target === phase) return;
   stop_();
@@ -1272,6 +1359,7 @@ function jumpToPhase(target) { // direct phase switch — like skip, but to any 
   else cycles = Math.min(Math.max(cycles, 1), 3); // short only ever occurs mid-set naturally; clamp into that range
   remaining = phaseMins() * 60000;
   saveTimer(); renderTimer();
+  announceTimer("Switched to " + phaseLabel[phase]);
 }
 $("phaseIcons").addEventListener("click", async e => {
   const btn = e.target.closest("[data-phase]");
@@ -1289,8 +1377,12 @@ function startTimer() {
   sessionMins = phaseMins(); // snapshot now too — a later duration-setting change can't retroactively inflate the logged length
   clearInterval(tickId); tickId = setInterval(tick, 250);
   saveTimer(); renderTimer();
+  announceTimer(phaseLabel[phase] + " started, " + minuteWord(phaseMins()));
 }
-function pauseTimer() { remaining = endAt - Date.now(); stop_(); saveTimer(); renderTimer(); }
+function pauseTimer() {
+  remaining = endAt - Date.now(); stop_(); saveTimer(); renderTimer();
+  announceTimer(phaseLabel[phase] + " paused");
+}
 function autoLog() { // a finished focus round lands in history, credits its task
   const task = plan.find(p => p.id === timerTaskId && !p.done);
   hist.unshift({ id: uid(), subjectId: sessionSubjectId, mins: sessionMins ?? settings.focus, notes: "", at: Date.now(), auto: true });
@@ -1311,6 +1403,7 @@ $("ring").addEventListener("animationend", e => { if (e.animationName === "cheer
 function finishPhase(live = true) {
   if (todayN.d !== todayKey()) todayN = { d: todayKey(), focus: 0, short: 0, long: 0 }; // a session can finish after midnight even though the tab opened yesterday
   const wasFocus = phase === "focus"; // capture before nextPhase reassigns phase — live sessionComplete gates on this, not the phase we're switching to
+  const finishedLabel = phaseLabel[phase]; // same capture, for the live completion announcement below
   if (wasFocus) { todayN.focus++; autoLog(); } else { todayN[phase]++; }
   save("study.todayN", todayN);
   [phase, cycles] = nextPhase(phase, cycles);
@@ -1320,6 +1413,8 @@ function finishPhase(live = true) {
     chime();
     notify(phaseLabel[phase] + " — " + phaseMins() + " min");
     if (wasFocus) haptic("sessionComplete");
+    // live-only, like chime/notify/haptic above — a silent background restore (live=false) isn't a real-time event to announce
+    announceTimer(finishedLabel + " session complete. " + phaseLabel[phase] + ", " + minuteWord(phaseMins()));
     $("ring").classList.add("cheer");
     clearTimeout(cheerT);
     cheerT = setTimeout(() => $("ring").classList.remove("cheer"), 1000);
@@ -1340,7 +1435,10 @@ $("startBtn").onclick = () => {
   try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch {}
   running ? pauseTimer() : startTimer();
 };
-$("resetBtn").onclick = () => { stop_(); remaining = phaseMins() * 60000; saveTimer(); renderTimer(); };
+$("resetBtn").onclick = () => {
+  stop_(); remaining = phaseMins() * 60000; saveTimer(); renderTimer();
+  announceTimer(phaseLabel[phase] + " reset, " + minuteWord(phaseMins()));
+};
 const requestFS = (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)?.bind(document.documentElement);
 const exitFS = (document.exitFullscreen || document.webkitExitFullscreen)?.bind(document);
 $("zenBtn").onclick = () => {
@@ -1628,14 +1726,19 @@ function renderPlan() {
     const dot = el("i", "dot"); dot.style.background = s?.color ?? "var(--faint)";
     row.append(dot, el("span", null, s?.name ?? "?"));
     const detail = el("span", "detail");
-    editableText(detail, () => p.text, v => { p.text = v; save("study.plan", plan); renderTaskSel(); }, "+ Note");
     row.append(detail);
     body.append(row, el("div", "meta", (p.donePoms || 0) + "/" + p.poms + " pomodoros · ~" + p.poms * settings.focus + " min"));
-    const move = d => { plan.splice(i + d, 0, ...plan.splice(i, 1)); save("study.plan", plan); renderPlan(); };
+    const move = d => {
+      const movedId = p.id;
+      plan.splice(i + d, 0, ...plan.splice(i, 1)); save("study.plan", plan); renderPlan();
+      // §5 C: keep focus on the moved row's same-direction button; fall back to the other direction if that one is now boundary-disabled
+      const mv = planListEl.querySelector('li[data-id="' + movedId + '"]')?.querySelectorAll(".mv");
+      const same = mv?.[d < 0 ? 0 : 1], other = mv?.[d < 0 ? 1 : 0];
+      (same && !same.disabled ? same : other)?.focus();
+    };
     const up = el("button", "step mv", "↑"), down = el("button", "step mv", "↓");
     up.type = "button"; down.type = "button";
-    up.setAttribute("aria-label", "Move item up"); up.title = "Move item up";
-    down.setAttribute("aria-label", "Move item down"); down.title = "Move item down";
+    up.title = "Move item up"; down.title = "Move item down";
     up.disabled = i === 0; down.disabled = i === plan.length - 1;
     up.onclick = () => move(-1); down.onclick = () => move(1);
     const x = el("button", "x", "✕");
@@ -1644,6 +1747,7 @@ function renderPlan() {
       const wasLinked = plan[i].id === timerTaskId; // renderPlan (via renderTaskSel) clears the link once this task is gone — remember it so undo can restore it
       const [rm] = plan.splice(i, 1);
       save("study.plan", plan); renderPlan();
+      focusAfterDelete("planList", i, "planSubj", 'input[type=checkbox]'); // §5 C
       toast("Task deleted", () => {
         plan.splice(i, 0, rm); save("study.plan", plan); renderPlan();
         if (wasLinked) { timerTaskId = rm.id; saveTimer(); renderTaskSel(); }
@@ -1666,8 +1770,30 @@ function renderPlan() {
     // already removes them from the tab order; visibility:visible only while .trayOpen (§ tray button behavior)
     rowTray.append(editBtn, delBtn);
 
+    // §5 D: control names carry task identity (subject + note); re-synced on note edits, which don't trigger a full renderPlan()
+    const syncNames = () => {
+      const nm = (s?.name ?? "?") + (p.text ? ": " + p.text : "");
+      cb.setAttribute("aria-label", "Mark " + nm + " complete");
+      up.setAttribute("aria-label", "Move " + nm + " up");
+      down.setAttribute("aria-label", "Move " + nm + " down");
+      x.setAttribute("aria-label", "Delete " + nm);
+      editBtn.setAttribute("aria-label", "Edit note: " + nm);
+      delBtn.setAttribute("aria-label", "Delete " + nm);
+    };
+    editableText(detail, () => p.text, v => { p.text = v; save("study.plan", plan); renderTaskSel(); syncNames(); }, "+ Note");
+    syncNames();
+
     li.append(rowTray, rowMint, rowMain); ul.append(li);
   });
+  // Pass 7 correction: pick up the focus a closeTray() couldn't land because this rebuild had already
+  // torn out the row it was aimed at (see pendingRowFocus comment above closeTray).
+  if (pendingRowFocus != null) {
+    if (!document.activeElement || document.activeElement === document.body || !planListEl.contains(document.activeElement)) {
+      const rowEl = planListEl.querySelector('li[data-id="' + pendingRowFocus + '"]');
+      (rowEl?.querySelector('input[type=checkbox]') || $("planSubj"))?.focus();
+    }
+    pendingRowFocus = null;
+  }
 }
 $("planForm").onsubmit = e => {
   e.preventDefault();
@@ -1762,6 +1888,7 @@ function finishGesture(e) {
     if (commit) {
       if (rowMain) rowMain.style.transform = "translateX(-" + g.trayW + "px)";
       if (tray) tray.style.visibility = ""; // .trayOpen governs visibility from here on
+      tray?.setAttribute("aria-hidden", "false");
       rowEl.classList.add("trayOpen");
       openTray = g.taskId;
       haptic("selection"); // release-time lock — never fires on partial drag or tray-action taps
@@ -1808,14 +1935,13 @@ function renderGoals() {
     const li = el("li");
     markFresh(li, "goal", g.id);
     const cur = goalProgress(g);
-    const desc = g.text || "Untitled target";
+    const unitLabel = g.unit === "min" ? "minutes" : g.unit === "poms" ? "Pomodoros" : "Milestone"; // §5 D: progressbar label unit
     const body = el("div", "grow");
     const text = el("div");
-    editableText(text, () => g.text, v => { if (v) g.text = v; save("study.goals", goals); });
     const over = g.unit === "count" && cur > g.target;
     const unitSuffix = g.unit === "min" ? " minutes" : g.unit === "poms" ? " Pomodoros" : "";
     const meta = el("div", "meta", cur + " / ");
-    const tgt = el("span", "ed"); tgt.title = "Click to change target";
+    const tgt = el("span", "amtEdit"); tgt.title = "Click to change target"; // .amtEdit: cbHit-pattern padded hit area (§5 A)
     editableText(tgt, () => String(g.target), v => { const t = +v; if (t > 0) { g.target = t; save("study.goals", goals); } renderGoals(); });
     meta.append(tgt, unitSuffix
       + (over ? " · +" + (cur - g.target) + " over ✦" : cur >= g.target ? " · done ✦" : "")
@@ -1832,7 +1958,6 @@ function renderGoals() {
     bar.setAttribute("aria-valuemin", "0");
     bar.setAttribute("aria-valuenow", String(cur));
     bar.setAttribute("aria-valuemax", String(g.target));
-    bar.setAttribute("aria-label", desc + " progress");
     if (cur >= g.target) {
       fill.className = "full";
       if (doneGoals && !doneGoals.has(g.id)) {
@@ -1848,17 +1973,27 @@ function renderGoals() {
     x.onclick = () => {
       const [rm] = goals.splice(i, 1);
       save("study.goals", goals); renderGoals();
+      focusAfterDelete("goalList", i, "goalText", ".ed"); // §5 C
       toast("Target deleted", () => { goals.splice(i, 0, rm); save("study.goals", goals); renderGoals(); });
     };
+    let minus, plus;
     if (g.unit === "count") {
-      const minus = el("button", "step", "−"), plus = el("button", "step", "+");
-      minus.setAttribute("aria-label", "Decrease progress: " + desc);
-      plus.setAttribute("aria-label", "Increase progress: " + desc);
+      minus = el("button", "step", "−"); plus = el("button", "step", "+");
       minus.disabled = g.current <= 0;
       minus.onclick = () => { g.current = Math.max(0, g.current - 1); save("study.goals", goals); renderGoals(); };
       plus.onclick = () => { g.current++; save("study.goals", goals); renderGoals(); };
       li.append(body, minus, plus, x);
     } else li.append(body, x);
+    // §5 D: names carry the target description; re-synced on text edits, which don't trigger a full renderGoals()
+    const syncNames = () => {
+      const nm = g.text || "Untitled target";
+      bar.setAttribute("aria-label", nm + " progress, " + unitLabel);
+      x.setAttribute("aria-label", "Delete target: " + nm);
+      minus?.setAttribute("aria-label", "Decrease progress: " + nm);
+      plus?.setAttribute("aria-label", "Increase progress: " + nm);
+    };
+    editableText(text, () => g.text, v => { if (v) g.text = v; save("study.goals", goals); syncNames(); });
+    syncNames();
     ul.append(li);
   });
   doneGoals = nowDone;
@@ -1942,7 +2077,7 @@ function renderHist() {
     return new Date(at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   };
   let lastDay = null;
-  for (const h of list) {
+  list.forEach((h, rowI) => {
     const dk = new Date(h.at).toDateString();
     if (dk !== lastDay) { lastDay = dk; ul.append(el("li", "daysep", dayLabel(h.at))); }
     const li = el("li");
@@ -1953,10 +2088,12 @@ function renderHist() {
     subj.append(dot, el("span", null, histSubjName(h)));
     const meta = el("span", "meta", new Date(h.at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) + " · " + h.mins + " min" + (h.auto ? " · auto" : ""));
     const x = el("button", "x", "✕");
+    x.setAttribute("aria-label", "Delete session: " + histSubjName(h) + ", " + h.mins + " min"); // §5 D
     x.onclick = () => {
       const idx = hist.indexOf(h);
       hist.splice(idx, 1);
       save("study.history", hist); renderHist(); renderGoals();
+      focusAfterDelete("histList", rowI, "histSubj", ".x"); // §5 C — position within the rendered (filtered) list, not the raw array
       toast("Session deleted", () => { hist.splice(idx, 0, h); save("study.history", hist); renderHist(); renderGoals(); });
     };
     top.append(subj, meta, x); li.append(top);
@@ -1964,7 +2101,7 @@ function renderHist() {
     editableText(notes, () => h.notes, v => { h.notes = v; save("study.history", hist); }, "+ Notes");
     li.append(notes);
     ul.append(li);
-  }
+  });
 }
 let histSearchT;
 $("histSearch").oninput = () => {
@@ -2014,9 +2151,16 @@ const TOUR = [
   { tab: "hist", sel: "#histTools", h: "History", p: "Sessions log themselves here. Search, filter by subject, edit notes inline. Back up anytime at the bottom." },
   { tab: "timer", sel: "#hdrRight", h: "Yours to keep", p: "Everything stays in this browser. ◐ swaps themes, ? reopens this guide." },
 ];
-let tourI = 0;
-TOUR.forEach((_, j) => { const d = el("i"); d.onclick = () => tourShow(j); $("tourDots").append(d); });
+let tourI = 0, tourInvoker = null;
+TOUR.forEach((_, j) => { // real buttons: keyboard-reachable + named, not bare divs (§5 C/D)
+  const d = el("button"); d.type = "button";
+  d.setAttribute("aria-label", "Go to step " + (j + 1) + " of " + TOUR.length);
+  d.onclick = () => tourShow(j);
+  $("tourDots").append(d);
+});
 function tourShow(i) {
+  const wasHidden = $("tour").hidden;
+  if (wasHidden) tourInvoker = document.activeElement; // §5 C: restore-to-invoker on close
   const t = TOUR[tourI = i];
   showTab(t.tab);
   if (t.sub) showPlanSub(t.sub, false); // never persisted from the tour
@@ -2034,6 +2178,7 @@ function tourShow(i) {
   $("tour").classList.remove("top");
   const tr = target?.getBoundingClientRect(), cr = $("tourCard").getBoundingClientRect();
   $("tour").classList.toggle("top", !!tr && tr.bottom > cr.top - 12 && tr.top < cr.bottom + 12);
+  if (wasHidden) $("tourNext").focus(); // §5 C: initial focus on open
 }
 function tourEnd() {
   $("tour").hidden = true;
@@ -2041,10 +2186,13 @@ function tourEnd() {
   save("study.tour", 1);
   showPlanSub(loadPlanSub(), false);
   showTab(load("study.tab", "timer"));
+  if (tourInvoker && tourInvoker !== document.body) tourInvoker.focus(); // §5 C: restore-to-invoker (helpBtn); a no-op on first-run auto-open
+  tourInvoker = null;
 }
 $("tourNext").onclick = () => tourI >= TOUR.length - 1 ? tourEnd() : tourShow(tourI + 1);
 $("tourSkip").onclick = tourEnd;
 $("tour").onclick = e => { if (e.target === $("tour")) tourEnd(); };
+$("tour").addEventListener("keydown", e => trapTab(e, $("tourCard"))); // §5 C: keep Tab cycling inside the tour card while open
 addEventListener("keydown", e => { if (e.key === "Escape" && !$("tour").hidden) tourEnd(); });
 $("helpBtn").onclick = () => tourShow(0);
 if (!load("study.tour", 0)) tourShow(0);
