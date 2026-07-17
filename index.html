@@ -581,9 +581,10 @@
     body{padding:0 14px calc(45px + 16px + env(safe-area-inset-bottom, 0px))}
     header{padding-top:22px; padding-bottom:16px}
     nav{margin-bottom:20px}
-    /* trims the timer card's vertical rhythm so Start clears the always-present dock handle at short viewports (audit L3) */
-    #timerCard{padding-top:14px}
-    .btnrow{margin:12px 0 8px}
+    /* trims the timer card's vertical rhythm so Start clears the always-present dock handle at short viewports (audit L3;
+       further trimmed Pass 8 D2 — 320x568 left only ~0.3px of clearance) */
+    #timerCard{padding-top:8px}
+    .btnrow{margin:8px 0 6px}
     #ring, body.zen #ring{width:236px; height:236px}
     #clock, body.zen #clock{font-size:44px}
     #durations{gap:14px}
@@ -942,7 +943,7 @@ $("goalList").addEventListener("animationend", e => { if (e.animationName === "b
 /* ---------- Today row swipe gestures (Pass 3) — state + reset live up here so showTab/showPlanSub can
    call resetGestures() safely even at boot, well before the gesture handlers below are wired up ---------- */
 const planListEl = $("planList");
-let gesture = null, openTray = null, suppressNextClick = false;
+let gesture = null, openTray = null, suppressClicksUntil = 0;
 // Pass 7 correction: a row completing elsewhere calls renderPlan(), which replaceChildren()s the whole
 // list — including this tray's row, if it's a *different* row that just got checked off. The immediate
 // .focus() below only works when the row node it's targeting is still attached; when the close is a
@@ -1014,7 +1015,7 @@ function addSubject(name) {
 const subjIdFor = name => (subjects.find(s => s.name.toLowerCase() === name.toLowerCase()) || addSubject(name)).id;
 
 let plan = loadArr("study.plan").map(p => p.subjectId ? p
-  : { id: p.id || uid(), subjectId: subjIdFor(p.subject || "study"), text: "", poms: p.poms || 1, donePoms: 0, done: !!p.done });
+  : { id: p.id || uid(), subjectId: subjIdFor(p.subject || "study"), text: p.text || "", poms: p.poms || 1, donePoms: 0, done: !!p.done });
 let hist = loadArr("study.history").map(h => "subjectId" in h ? h
   : { ...h, id: h.id || uid(), subjectId: h.subject ? subjIdFor(h.subject) : null });
 hist.sort((a, b) => b.at - a.at); // imported backups may arrive unsorted; day grouping assumes newest-first
@@ -1871,7 +1872,7 @@ function finishGesture(e) {
   const rowEl = g.rowEl, rowMain = rowEl.querySelector(".rowMain"), tray = rowEl.querySelector(".rowTray"), mint = rowEl.querySelector(".rowMint");
   try { rowEl.releasePointerCapture(g.pointerId); } catch {}
   rowEl.classList.remove("gestureLive");
-  suppressNextClick = true; // swallow the synthetic click a touch drag leaves behind, once
+  suppressClicksUntil = performance.now() + 350; // ghost clicks after a touch drag arrive within milliseconds and may land on the revealed tray, so they must be swallowed; the window bounds the cost on platforms that never fire one
   const dx = e.clientX - g.startX;
   // commit decided at release — a swipe is cancellable until the finger lifts (Fable ruling, Pass 6)
   if (g.dir === "right") {
@@ -1912,8 +1913,8 @@ function cancelGesture() {
 planListEl.addEventListener("pointerup", finishGesture, { passive: true });
 planListEl.addEventListener("pointercancel", cancelGesture, { passive: true });
 planListEl.addEventListener("click", e => { // capture-phase, swallow the post-gesture synthetic click exactly once
-  if (!suppressNextClick) return;
-  suppressNextClick = false;
+  if (performance.now() >= suppressClicksUntil) return; // window self-expired — a stale flag can never eat a later tap
+  suppressClicksUntil = 0;
   e.stopPropagation(); e.preventDefault();
 }, true);
 
@@ -2187,6 +2188,7 @@ function tourEnd() {
   showPlanSub(loadPlanSub(), false);
   showTab(load("study.tab", "timer"));
   if (tourInvoker && tourInvoker !== document.body) tourInvoker.focus(); // §5 C: restore-to-invoker (helpBtn); a no-op on first-run auto-open
+  else if (document.activeElement && $("tour").contains(document.activeElement)) document.activeElement.blur(); // first-run auto-open: don't leave focus parked on a now-hidden control
   tourInvoker = null;
 }
 $("tourNext").onclick = () => tourI >= TOUR.length - 1 ? tourEnd() : tourShow(tourI + 1);

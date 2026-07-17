@@ -18,7 +18,7 @@ PomoPal is a pomodoro-based study companion built as one HTML file (plus a small
 
 ### 📋 Plan
 Two views behind a segmented control — **Today** for the day's list, **Targets** for longer-range aims.
-- **Today:** plan sessions per subject with a pomodoro estimate; drag to reorder (↑/↓ buttons on touch), check off with custom circular checkboxes, edit notes in place. Tasks auto-complete when their pomodoro count is reached.
+- **Today:** plan sessions per subject with a pomodoro estimate; drag to reorder (↑/↓ buttons on touch), check off with custom circular checkboxes, edit notes in place; on touch, swipe a task right to complete it or left for Edit note / Delete. Tasks auto-complete when their pomodoro count is reached.
 - **Targets:** aim at something bigger than today. **Pomodoro** and **Minute** targets fill up on their own — from live focus sessions and logged study time — with an optional subject scope; **Milestones** (manual) tick with + and −. Add an optional deadline with days-left display, and progress bars pulse when a target is freshly completed.
 
 ### 📖 Session log
