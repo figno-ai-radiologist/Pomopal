@@ -77,7 +77,7 @@
     background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px;
     animation:rise .45s .12s ease-out backwards}
   #navPill{
-    position:absolute; top:4px; bottom:4px; left:4px; width:calc(25% - 2px);
+    position:absolute; top:4px; bottom:4px; left:4px; width:calc(33.333% - 2.67px);
     background:var(--panel); border-radius:999px;
     box-shadow:0 1px 3px rgba(var(--sh),.1), 0 5px 14px -6px rgba(var(--sh),.18);
     transform:translateX(calc(var(--navi,0) * 100%));
@@ -209,7 +209,7 @@
   }
   .setTabs{position:relative; display:flex; padding:4px; margin-bottom:16px; background:rgba(var(--sh),.05); border:1px solid var(--line); border-radius:999px}
   .setPill{
-    position:absolute; top:4px; bottom:4px; left:4px; width:calc(33.333% - 2.67px);
+    position:absolute; top:4px; bottom:4px; left:4px; width:var(--pillw, calc(33.333% - 2.67px));
     background:var(--panel); border-radius:999px;
     box-shadow:0 1px 3px rgba(var(--sh),.1), 0 5px 14px -6px rgba(var(--sh),.18);
     transform:translateX(calc(var(--seti,0) * 100%));
@@ -311,8 +311,8 @@
     background:var(--panel); border:1px solid var(--line); border-radius:14px;
     padding:14px 16px; display:flex; align-items:center; gap:14px;
     box-shadow:0 1px 2px rgba(var(--sh),.04), 0 10px 24px -18px rgba(var(--sh),.22);
-    animation:rise .3s ease backwards;
   }
+  ul.items li.fresh{animation:rise .3s ease backwards} /* only newly-created rows animate in — see trackFresh() */
   ul.items li .grow{flex:1; min-width:0; overflow-wrap:break-word}
   .srow{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
   .detail{color:var(--dim); font-size:15px}
@@ -371,6 +371,7 @@
   .sbtn:disabled{opacity:.3; pointer-events:none}
 
   /* planner */
+  #planSub{--pillw:calc(50% - 4px)} /* Today|Targets is 2-wide, unlike the 3-wide settings dock this pill pattern is shared with */
   #planList input[type=checkbox]{
     appearance:none; -webkit-appearance:none; width:22px; height:22px; flex:none; cursor:pointer;
     border:2px solid var(--line); border-radius:50%; background:var(--panel);
@@ -553,8 +554,7 @@
 <nav id="tabs" role="tablist">
   <span id="navPill" aria-hidden="true"></span>
   <button role="tab" aria-selected="true" data-tab="timer">Timer</button>
-  <button role="tab" aria-selected="false" data-tab="plan">Planner</button>
-  <button role="tab" aria-selected="false" data-tab="goals">Goals</button>
+  <button role="tab" aria-selected="false" data-tab="plan">Plan</button>
   <button role="tab" aria-selected="false" data-tab="hist">History</button>
 </nav>
 
@@ -714,30 +714,38 @@
   </section>
 
   <section id="tab-plan" hidden>
-    <h2 class="sec">Today's <b>plan</b></h2>
-    <p class="hint">Your list for today — the timer's “Working on” menu pulls from it. Drag to reorder, check off as you go.</p>
-    <form class="add" id="planForm">
-      <label class="f">Subject<select id="planSubj" required></select></label>
-      <label class="f grow">Note<input type="text" id="planText" placeholder="Optional — e.g. chapter 4"></label>
-      <label class="f">Pomodoros<input type="number" id="planPoms" min="1" max="20" value="2"></label>
-      <button class="btn primary">Add</button>
-    </form>
-    <ul class="items" id="planList"></ul>
-    <div class="toolrow"><button class="btn" id="clearDone" hidden>Clear done</button></div>
-  </section>
+    <div class="setTabs" id="planSub">
+      <span class="setPill" aria-hidden="true"></span>
+      <button type="button" class="setTab" data-psub="today" aria-selected="true">Today</button>
+      <button type="button" class="setTab" data-psub="targets" aria-selected="false">Targets</button>
+    </div>
 
-  <section id="tab-goals" hidden>
-    <h2 class="sec">Your <b>goals</b></h2>
-    <p class="hint">Longer-term targets, beyond today. Count goals tick with + and −; minute goals fill up on their own from your logged study time.</p>
-    <form class="add" id="goalForm">
-      <label class="f grow">Goal<input type="text" id="goalText" placeholder="Finish 10 calculus chapters" required></label>
-      <label class="f">Target<input type="number" id="goalTarget" min="1" max="9999" value="10"></label>
-      <label class="f">Type<select id="goalUnit"><option value="count">Count</option><option value="min">Minutes</option></select></label>
-      <label class="f" id="goalSubjF" hidden>Subject<select id="goalSubj"></select></label>
-      <label class="f">Deadline<input type="date" id="goalDue" title="Optional"></label>
-      <button class="btn primary">Add</button>
-    </form>
-    <ul class="items" id="goalList"></ul>
+    <div class="planPanel" data-psub="today">
+      <h2 class="sec">Today's <b>plan</b></h2>
+      <p class="hint">Your list for today — the timer's “Working on” menu pulls from it. Drag to reorder, check off as you go.</p>
+      <form class="add" id="planForm">
+        <label class="f">Subject<select id="planSubj" required></select></label>
+        <label class="f grow">Note<input type="text" id="planText" placeholder="Optional — e.g. chapter 4"></label>
+        <label class="f">Pomodoros<input type="number" id="planPoms" min="1" max="20" value="2"></label>
+        <button class="btn primary">Add</button>
+      </form>
+      <ul class="items" id="planList"></ul>
+      <div class="toolrow"><button class="btn" id="clearDone" hidden>Clear done</button></div>
+    </div>
+
+    <div class="planPanel" data-psub="targets" hidden>
+      <h2 class="sec">Your <b>targets</b></h2>
+      <p class="hint">Bigger than today. Pomodoro and minute targets fill up on their own as you focus; milestones tick by hand.</p>
+      <form class="add" id="goalForm">
+        <label class="f grow">Target<input type="text" id="goalText" placeholder="A steady study week" required></label>
+        <label class="f">Amount<input type="number" id="goalTarget" min="1" max="9999" value="10"></label>
+        <label class="f">Type<select id="goalUnit"><option value="poms">Pomodoros</option><option value="min">Minutes</option><option value="count">Milestone (manual)</option></select></label>
+        <label class="f" id="goalSubjF" hidden>Subject<select id="goalSubj"></select></label>
+        <label class="f">Deadline<input type="date" id="goalDue" title="Optional"></label>
+        <button class="btn primary">Add</button>
+      </form>
+      <ul class="items" id="goalList"></ul>
+    </div>
   </section>
 
   <section id="tab-hist" hidden>
@@ -836,6 +844,20 @@ function emptyState(text) {
   return li;
 }
 
+/* per-list seen-id tracking: only a row whose id hasn't rendered before gets the entrance animation */
+const freshSeen = { plan: new Set(), goal: new Set(), hist: new Set() };
+function trackFresh(li, id, key) {
+  if (freshSeen[key].has(id)) return;
+  freshSeen[key].add(id);
+  li.classList.add("fresh");
+  // animationend can't fire on a row hidden via display:none (e.g. its tab switched away mid-animation)
+  // or under prefers-reduced-motion (no animation ever plays) — this timeout is the backstop that still
+  // strips .fresh so the row doesn't replay the entrance animation next time it's shown.
+  setTimeout(() => li.classList.remove("fresh"), 400);
+}
+for (const [id, key] of [["planList", "plan"], ["goalList", "goal"], ["histList", "hist"]])
+  $(id).addEventListener("animationend", e => e.target.classList.remove("fresh"));
+
 const todayKey = () => new Date().toDateString(); // a function, not a snapshot — must stay correct across midnight for a session left open
 
 /* ---------- data + migration ---------- */
@@ -886,7 +908,7 @@ $("themeBtn").onclick = () => {
   })], { type: "application/json" }));
   document.head.append(m);
 }
-const DATA_KEYS = ["study.subjects", "study.plan", "study.goals", "study.history", "study.settings", "study.todayN", "study.timer", "study.tab", "study.tour"];
+const DATA_KEYS = ["study.subjects", "study.plan", "study.goals", "study.history", "study.settings", "study.todayN", "study.timer", "study.tab", "study.planSub", "study.tour"];
 $("exportBtn").onclick = () => {
   const blob = new Blob([JSON.stringify(Object.fromEntries(DATA_KEYS.map(k => [k, load(k, null)])), null, 2)], { type: "application/json" });
   const a = el("a"); a.href = URL.createObjectURL(blob); a.download = "pomopal-backup.json";
@@ -903,11 +925,21 @@ $("importFile").onchange = async () => {
 };
 
 /* ---------- tabs ---------- */
+const loadPlanSub = () => load("study.planSub", "today") === "targets" ? "targets" : "today"; // validated at every read — an old/garbage value must never leave both subsections hidden
 function showTab(name) {
   const tabs = [...document.querySelectorAll("#tabs [data-tab]")];
+  if (name === "goals") { showPlanSub("targets"); name = "plan"; } // permanent fallback for pre-restructure backups/links (D5)
+  else if (!tabs.some(b => b.dataset.tab === name)) name = "timer";
   tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
   $("tabs").style.setProperty("--navi", Math.max(0, tabs.findIndex(b => b.dataset.tab === name)));
   for (const s of document.querySelectorAll("main section")) s.hidden = s.id !== "tab-" + name;
+}
+function showPlanSub(name, persist = true) {
+  const tabs = [...document.querySelectorAll("#planSub [data-psub]")];
+  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.psub === name));
+  $("planSub").style.setProperty("--seti", Math.max(0, tabs.findIndex(b => b.dataset.psub === name)));
+  for (const p of document.querySelectorAll(".planPanel")) p.hidden = p.dataset.psub !== name;
+  if (persist) save("study.planSub", name);
 }
 function showSetTab(name, openDock) {
   const tabs = [...document.querySelectorAll("#setTabs [data-set]")];
@@ -925,6 +957,11 @@ $("setTabs").addEventListener("click", e => {
   if (btn) showSetTab(btn.dataset.set);
 });
 showSetTab("timer");
+$("planSub").addEventListener("click", e => {
+  const btn = e.target.closest("[data-psub]");
+  if (btn) showPlanSub(btn.dataset.psub);
+});
+showPlanSub(loadPlanSub(), false);
 $("tabs").addEventListener("click", e => {
   const btn = e.target.closest("[data-tab]");
   if (!btn) return;
@@ -1417,6 +1454,7 @@ function renderPlan() {
   if (!plan.length) return ul.append(emptyState("Nothing planned yet — what's first?"));
   plan.forEach((p, i) => {
     const li = el("li", p.done ? "done" : "");
+    trackFresh(li, p.id, "plan");
     li.draggable = true;
     li.ondragstart = () => { dragI = i; li.classList.add("dragging"); };
     li.ondragend = () => {
@@ -1480,27 +1518,35 @@ $("clearDone").onclick = () => {
 };
 
 /* ---------- goals ---------- */
-const goalProgress = g => g.unit === "min"
+const goalProgress = g => g.unit === "poms"
+  ? hist.filter(h => h.auto && h.at >= (g.createdAt || 0) && (!g.subjectId || h.subjectId === g.subjectId)).length
+  : g.unit === "min"
   ? hist.filter(h => h.at >= (g.createdAt || 0) && (!g.subjectId || h.subjectId === g.subjectId)).reduce((s, h) => s + h.mins, 0)
   : g.current;
-$("goalUnit").onchange = () => $("goalSubjF").hidden = $("goalUnit").value !== "min";
+const syncGoalSubjF = () => $("goalSubjF").hidden = $("goalUnit").value === "count";
+$("goalUnit").onchange = syncGoalSubjF;
+syncGoalSubjF();
 let doneGoals = null; // baseline of completed goal ids, so the bar pulses only on fresh completion
 function renderGoals() {
   const ul = $("goalList"); ul.replaceChildren();
   const nowDone = new Set(goals.filter(g => goalProgress(g) >= g.target).map(g => g.id));
-  if (!goals.length) { doneGoals = nowDone; return ul.append(emptyState("No goals yet — aim at something.")); }
+  if (!goals.length) { doneGoals = nowDone; return ul.append(emptyState("No targets yet — aim at something.")); }
   goals.forEach((g, i) => {
     const li = el("li");
+    trackFresh(li, g.id, "goal");
     const cur = goalProgress(g);
     const body = el("div", "grow");
     const text = el("div");
     editableText(text, () => g.text, v => { if (v) g.text = v; save("study.goals", goals); });
     const over = g.unit === "count" && cur > g.target;
+    const unitSuffix = g.unit === "min" ? " min" : g.unit === "poms" ? " poms" : "";
     const meta = el("div", "meta", cur + " / ");
     const tgt = el("span", "ed"); tgt.title = "Click to change target";
     editableText(tgt, () => String(g.target), v => { const t = +v; if (t > 0) { g.target = t; save("study.goals", goals); } renderGoals(); });
-    meta.append(tgt, (g.unit === "min" ? " min" : "") + (over ? " · +" + (cur - g.target) + " over ✦" : cur >= g.target ? " · done ✦" : ""));
-    if (g.unit === "min" && g.subjectId) meta.append(" · " + (subjById(g.subjectId)?.name ?? "?"));
+    meta.append(tgt, unitSuffix
+      + (over ? " · +" + (cur - g.target) + " over ✦" : cur >= g.target ? " · done ✦" : "")
+      + (g.unit === "count" ? " · milestone" : ""));
+    if (g.unit !== "count" && g.subjectId) meta.append(" · " + (subjById(g.subjectId)?.name ?? "?"));
     if (g.due) {
       const days = Math.ceil((new Date(g.due + "T23:59:59") - Date.now()) / 86400000);
       const span = el("span", days < 0 ? "late" : "", " · due " + new Date(g.due).toLocaleDateString(undefined, { month: "short", day: "numeric" }) + (days < 0 ? " · overdue" : " · " + days + "d left"));
@@ -1517,7 +1563,7 @@ function renderGoals() {
     x.onclick = () => {
       const [rm] = goals.splice(i, 1);
       save("study.goals", goals); renderGoals();
-      toast("Goal deleted", () => { goals.splice(i, 0, rm); save("study.goals", goals); renderGoals(); });
+      toast("Target deleted", () => { goals.splice(i, 0, rm); save("study.goals", goals); renderGoals(); });
     };
     if (g.unit === "count") {
       const minus = el("button", "step", "−"), plus = el("button", "step", "+");
@@ -1534,9 +1580,10 @@ function renderGoals() {
 }
 $("goalForm").onsubmit = e => {
   e.preventDefault();
+  const unit = $("goalUnit").value;
   goals.push({
     id: uid(), text: $("goalText").value.trim(), target: +$("goalTarget").value || 1,
-    unit: $("goalUnit").value, subjectId: $("goalUnit").value === "min" ? ($("goalSubj").value || null) : null,
+    unit, subjectId: unit !== "count" ? ($("goalSubj").value || null) : null,
     due: $("goalDue").value, current: 0, createdAt: Date.now(),
   });
   save("study.goals", goals); $("goalText").value = ""; $("goalDue").value = ""; renderGoals();
@@ -1612,6 +1659,7 @@ function renderHist() {
     const dk = new Date(h.at).toDateString();
     if (dk !== lastDay) { lastDay = dk; ul.append(el("li", "daysep", dayLabel(h.at))); }
     const li = el("li");
+    trackFresh(li, h.id, "hist");
     const top = el("div", "top");
     const subj = el("div", "grow srow");
     const dot = el("i", "dot"); dot.style.background = subjById(h.subjectId)?.color ?? "var(--faint)";
@@ -1672,8 +1720,8 @@ const TOUR = [
   { tab: "timer", sel: "#ring", h: "The timer", p: "25 focus, 5 break, a longer one every 4 rounds. Space toggles start/pause; the icons below jump phases directly. Top-right goes fullscreen." },
   { tab: "timer", sel: ".wkOn", h: "Link your work", p: "Pick a task under the clock. Finished sessions log themselves and tick off its pomodoro count." },
   { tab: "timer", sel: "#setHandleBtn", h: "Sound & music", p: "Tap Settings for rain, deep noise, or YouTube tracks — played audio-only with real controls." },
-  { tab: "plan", sel: "#planForm", h: "The planner", p: "Add a subject and a pomodoro count. Drag to reorder, check items off as you go." },
-  { tab: "goals", sel: "#goalForm", h: "Goals", p: "Bigger targets than today's list. Count goals tick with + −; minute goals fill in on their own." },
+  { tab: "plan", sub: "today", sel: "#planForm", h: "Today", p: "Add a subject and a pomodoro count. Drag to reorder, check items off as you go." },
+  { tab: "plan", sub: "targets", sel: "#goalForm", h: "Targets", p: "Bigger than today. Pomodoro and minute targets fill up on their own; milestones tick by hand." },
   { tab: "hist", sel: "#histTools", h: "History", p: "Sessions log themselves here. Search, filter by subject, edit notes inline. Back up anytime at the bottom." },
   { tab: "timer", sel: "#hdrRight", h: "Yours to keep", p: "Everything stays in this browser. ◐ swaps themes, ? reopens this guide." },
 ];
@@ -1682,6 +1730,7 @@ TOUR.forEach((_, j) => { const d = el("i"); d.onclick = () => tourShow(j); $("to
 function tourShow(i) {
   const t = TOUR[tourI = i];
   showTab(t.tab);
+  if (t.sub) showPlanSub(t.sub, false); // never persisted from the tour
   document.querySelector(".tourGlow")?.classList.remove("tourGlow");
   const target = document.querySelector(t.sel);
   target?.classList.add("tourGlow");
@@ -1701,6 +1750,7 @@ function tourEnd() {
   $("tour").hidden = true;
   document.querySelector(".tourGlow")?.classList.remove("tourGlow");
   save("study.tour", 1);
+  showPlanSub(loadPlanSub(), false);
   showTab(load("study.tab", "timer"));
 }
 $("tourNext").onclick = () => tourI >= TOUR.length - 1 ? tourEnd() : tourShow(tourI + 1);

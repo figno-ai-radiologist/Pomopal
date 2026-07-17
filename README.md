@@ -16,15 +16,10 @@ PomoPal is a pomodoro-based study companion built as one HTML file (plus a small
 - Auto-continue mode, `Space` to start/pause (while the Timer tab is showing and the guide isn't open), and a fullscreen mode (top-right) that hides the cursor while you work
 - Settings, ambience, and focus music live in a collapsible sheet pinned to the bottom of the screen
 
-### 📋 Planner
-- Plan sessions per subject with a pomodoro estimate
-- Drag to reorder with a live insertion indicator (↑/↓ buttons on touch), check off with custom circular checkboxes, edit notes in place
-- Tasks auto-complete when their pomodoro count is reached
-
-### 🎯 Goals
-- **Count goals** tick with + and −
-- **Minute goals** track your logged study time automatically — scope them to a subject, add an optional deadline with days-left display
-- Progress bars pulse when a goal is freshly completed
+### 📋 Plan
+Two views behind a segmented control — **Today** for the day's list, **Targets** for longer-range aims.
+- **Today:** plan sessions per subject with a pomodoro estimate; drag to reorder (↑/↓ buttons on touch), check off with custom circular checkboxes, edit notes in place. Tasks auto-complete when their pomodoro count is reached.
+- **Targets:** aim at something bigger than today. **Pomodoro** and **Minute** targets fill up on their own — from live focus sessions and logged study time — with an optional subject scope; **Milestones** (manual) tick with + and −. Add an optional deadline with days-left display, and progress bars pulse when a target is freshly completed.
 
 ### 📖 Session log
 - Every finished focus session lands here on its own; log longer sessions by hand with notes
@@ -39,7 +34,7 @@ PomoPal is a pomodoro-based study companion built as one HTML file (plus a small
 
 ### ✨ Everything else
 - Warm light theme and a deep-plum dark theme (◐ in the header), custom-designed fields, buttons, and segmented navigation
-- Reusable color-coded subjects shared across planner, log, and goals — created through a small in-app dialog, not the browser's prompt
+- Reusable color-coded subjects shared across the timer, plan, and log — created through a small in-app dialog, not the browser's prompt
 - One-click JSON backup export/import (bottom of the Session log tab)
 - Installable as a web app (Android/Chrome manifest + iOS metas)
 - Reduced-motion support and WCAG AA contrast in both themes
