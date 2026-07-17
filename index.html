@@ -714,13 +714,13 @@
   </section>
 
   <section id="tab-plan" hidden>
-    <div class="setTabs" id="planSub">
+    <div class="setTabs" id="planSub" role="tablist" aria-label="Plan view">
       <span class="setPill" aria-hidden="true"></span>
-      <button type="button" class="setTab" data-psub="today" aria-selected="true">Today</button>
-      <button type="button" class="setTab" data-psub="targets" aria-selected="false">Targets</button>
+      <button type="button" class="setTab" id="planTabToday" data-psub="today" role="tab" aria-selected="true" aria-controls="planPanelToday" tabindex="0">Today</button>
+      <button type="button" class="setTab" id="planTabTargets" data-psub="targets" role="tab" aria-selected="false" aria-controls="planPanelTargets" tabindex="-1">Targets</button>
     </div>
 
-    <div class="planPanel" data-psub="today">
+    <div class="planPanel" id="planPanelToday" data-psub="today" role="tabpanel" aria-labelledby="planTabToday">
       <h2 class="sec">Today's <b>plan</b></h2>
       <p class="hint">Your list for today — the timer's “Working on” menu pulls from it. Drag to reorder, check off as you go.</p>
       <form class="add" id="planForm">
@@ -733,7 +733,7 @@
       <div class="toolrow"><button class="btn" id="clearDone" hidden>Clear done</button></div>
     </div>
 
-    <div class="planPanel" data-psub="targets" hidden>
+    <div class="planPanel" id="planPanelTargets" data-psub="targets" role="tabpanel" aria-labelledby="planTabTargets" hidden>
       <h2 class="sec">Your <b>targets</b></h2>
       <p class="hint">Bigger than today. Pomodoro and minute targets fill up on their own as you focus; milestones tick by hand.</p>
       <form class="add" id="goalForm">
@@ -936,7 +936,7 @@ function showTab(name) {
 }
 function showPlanSub(name, persist = true) {
   const tabs = [...document.querySelectorAll("#planSub [data-psub]")];
-  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.psub === name));
+  tabs.forEach(b => { const sel = b.dataset.psub === name; b.setAttribute("aria-selected", sel); b.tabIndex = sel ? 0 : -1; });
   $("planSub").style.setProperty("--seti", Math.max(0, tabs.findIndex(b => b.dataset.psub === name)));
   for (const p of document.querySelectorAll(".planPanel")) p.hidden = p.dataset.psub !== name;
   if (persist) save("study.planSub", name);
@@ -960,6 +960,18 @@ showSetTab("timer");
 $("planSub").addEventListener("click", e => {
   const btn = e.target.closest("[data-psub]");
   if (btn) showPlanSub(btn.dataset.psub);
+});
+$("planSub").addEventListener("keydown", e => {
+  const subs = ["today", "targets"];
+  let i = subs.indexOf(e.target.dataset.psub);
+  if (i < 0) return;
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") i = (i + 1) % subs.length;
+  else if (e.key === "Home") i = 0;
+  else if (e.key === "End") i = subs.length - 1;
+  else return;
+  e.preventDefault();
+  showPlanSub(subs[i]);
+  $("planSub").querySelector(`[data-psub="${subs[i]}"]`).focus();
 });
 showPlanSub(loadPlanSub(), false);
 $("tabs").addEventListener("click", e => {
