@@ -299,6 +299,13 @@
   form.add .f{display:flex; flex-direction:column; gap:5px; font-family:var(--sans); font-size:12px; color:var(--dim); cursor:pointer}
   form.add .f.grow{flex:1; min-width:150px}
   form.add .f.grow input{width:100%}
+  /* Targets form field pairs (Type+Amount, Subject+Deadline): each pair is itself a wrap-item in
+     form.add's flex-wrap, and wraps its own two fields onto separate lines when the pair itself is
+     too narrow — no media query needed, same mechanism handles 320px and 1280px. */
+  form.add .fpair{display:flex; gap:10px; flex-wrap:wrap; flex:1 1 260px; align-items:flex-end}
+  /* keeps the hidden Subject field's box (so Deadline never jumps) while still hiding it from
+     view and — via visibility, not just display:none — from focus order and the a11y tree */
+  #goalSubjF[hidden]{display:flex; visibility:hidden}
   form.add input[type=text], form.add textarea, input.search{
     background:var(--panel2); border:1px solid var(--line); border-radius:8px;
     color:var(--ink); font-family:var(--sans); font-size:16px; padding:11px 14px;
@@ -381,6 +388,10 @@
 
   /* planner */
   #planSub{--pillw:calc(50% - 4px)} /* Today|Targets is 2-wide, unlike the 3-wide settings dock this pill pattern is shared with */
+  /* container-only reveal on Today/Targets subsection switch — same trick as .setPanel: a CSS
+     animation on an element restarts whenever it goes from display:none to rendered, so unhiding
+     replays it with no JS. No per-row stagger, no interaction with li.fresh. */
+  .planPanel{animation:rise var(--dur-reveal) ease-out}
   #planList input[type=checkbox]{
     appearance:none; -webkit-appearance:none; width:22px; height:22px; flex:none; cursor:pointer;
     border:2px solid var(--line); border-radius:50%; background:var(--panel);
@@ -687,14 +698,18 @@
 
     <div class="planPanel" id="planPanelTargets" data-psub="targets" role="tabpanel" aria-labelledby="planTabTargets" hidden>
       <h2 class="sec">Your <b>targets</b></h2>
-      <p class="hint">Bigger than today. Pomodoro and minute targets fill up on their own as you focus; milestones tick by hand.</p>
+      <p class="hint">Pomodoro and minute targets update as you focus. Manual milestones move when you update them.</p>
       <form class="add" id="goalForm">
         <label class="f grow">Target<input type="text" id="goalText" placeholder="A steady study week" required></label>
-        <label class="f">Amount<input type="number" id="goalTarget" min="1" max="9999" value="10"></label>
-        <label class="f">Type<select id="goalUnit"><option value="poms">Pomodoros</option><option value="min">Minutes</option><option value="count">Milestone (manual)</option></select></label>
-        <label class="f" id="goalSubjF" hidden>Subject<select id="goalSubj"></select></label>
-        <label class="f">Deadline<input type="date" id="goalDue" title="Optional"></label>
-        <button class="btn primary">Add</button>
+        <div class="fpair">
+          <label class="f">Type<select id="goalUnit"><option value="poms">Pomodoros</option><option value="min">Minutes</option><option value="count">Milestone (manual)</option></select></label>
+          <label class="f">Amount<input type="number" id="goalTarget" min="1" max="9999" value="10"></label>
+        </div>
+        <div class="fpair">
+          <label class="f" id="goalSubjF" hidden>Subject<select id="goalSubj"></select></label>
+          <label class="f">Deadline<input type="date" id="goalDue" title="Optional"></label>
+        </div>
+        <button class="btn primary">Add target</button>
       </form>
       <ul class="items" id="goalList"></ul>
     </div>
@@ -900,6 +915,9 @@ function markFresh(li, key, id) {
 }
 for (const [id, key] of [["planList", "plan"], ["goalList", "goal"], ["histList", "hist"]])
   $(id).addEventListener("animationend", e => e.target.classList.remove("fresh"));
+// natural-completion path for the target bar pulse: clears .pulse the moment barPulse actually plays,
+// so the 1000ms setTimeout above only has to catch the hidden-panel / reduced-motion cases.
+$("goalList").addEventListener("animationend", e => { if (e.animationName === "barPulse") e.target.classList.remove("pulse"); });
 
 /* ---------- Today row swipe gestures (Pass 3) — state + reset live up here so showTab/showPlanSub can
    call resetGestures() safely even at boot, well before the gesture handlers below are wired up ---------- */
@@ -1113,16 +1131,22 @@ refreshSubjSelects();
 /* ---------- inline editing ---------- */
 function editableText(node, get, set, ghost) {
   node.classList.add("ed");
+  node.tabIndex = 0; // Pass 5 (Fable-sanctioned component fix): keyboard-reachable even at rest, not just while editing
   const paint = () => { const v = get(); node.textContent = v || ghost || ""; node.classList.toggle("ghost", !v && !!ghost); };
   paint();
-  node.onclick = () => {
+  const open = () => {
     if (node.isContentEditable) return;
     if (node.classList.contains("ghost")) { node.textContent = ""; node.classList.remove("ghost"); }
     try { node.contentEditable = "plaintext-only"; } catch { node.contentEditable = "true"; }
     node.focus();
   };
+  node.onclick = open;
   node.onblur = () => { node.contentEditable = "false"; set(node.textContent.trim()); paint(); };
-  node.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); node.blur(); } };
+  node.onkeydown = e => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    e.preventDefault();
+    node.isContentEditable ? node.blur() : open(); // at rest: Enter opens, same as click; while editing: Enter commits, unchanged
+  };
 }
 
 /* ---------- timer ---------- */
@@ -1782,22 +1806,23 @@ let doneGoals = null; // baseline of completed goal ids, so the bar pulses only 
 function renderGoals() {
   const ul = $("goalList"); ul.replaceChildren();
   const nowDone = new Set(goals.filter(g => goalProgress(g) >= g.target).map(g => g.id));
-  if (!goals.length) { doneGoals = nowDone; return ul.append(emptyState("No targets yet — aim at something.")); }
+  if (!goals.length) { doneGoals = nowDone; return ul.append(emptyState("No targets yet. Add one to track progress over time.")); }
   goals.forEach((g, i) => {
     const li = el("li");
     markFresh(li, "goal", g.id);
     const cur = goalProgress(g);
+    const desc = g.text || "Untitled target";
     const body = el("div", "grow");
     const text = el("div");
     editableText(text, () => g.text, v => { if (v) g.text = v; save("study.goals", goals); });
     const over = g.unit === "count" && cur > g.target;
-    const unitSuffix = g.unit === "min" ? " min" : g.unit === "poms" ? " poms" : "";
+    const unitSuffix = g.unit === "min" ? " minutes" : g.unit === "poms" ? " Pomodoros" : "";
     const meta = el("div", "meta", cur + " / ");
     const tgt = el("span", "ed"); tgt.title = "Click to change target";
     editableText(tgt, () => String(g.target), v => { const t = +v; if (t > 0) { g.target = t; save("study.goals", goals); } renderGoals(); });
     meta.append(tgt, unitSuffix
       + (over ? " · +" + (cur - g.target) + " over ✦" : cur >= g.target ? " · done ✦" : "")
-      + (g.unit === "count" ? " · milestone" : ""));
+      + (g.unit === "count" ? " · Milestone" : ""));
     if (g.unit !== "count" && g.subjectId) meta.append(" · " + (subjById(g.subjectId)?.name ?? "?"));
     if (g.due) {
       const days = Math.ceil((new Date(g.due + "T23:59:59") - Date.now()) / 86400000);
@@ -1806,9 +1831,20 @@ function renderGoals() {
     }
     const bar = el("div", "bar"), fill = el("i");
     fill.style.width = Math.min(100, cur / g.target * 100) + "%";
+    bar.setAttribute("role", "progressbar");
+    bar.setAttribute("aria-valuemin", "0");
+    bar.setAttribute("aria-valuenow", String(cur));
+    bar.setAttribute("aria-valuemax", String(g.target));
+    bar.setAttribute("aria-label", desc + " progress");
     if (cur >= g.target) {
       fill.className = "full";
-      if (doneGoals && !doneGoals.has(g.id)) fill.classList.add("pulse");
+      if (doneGoals && !doneGoals.has(g.id)) {
+        fill.classList.add("pulse");
+        // same reasoning as markFresh(): a pulse born while Targets is hidden (or under reduced motion)
+        // never gets an animationend, so animation-restart semantics would replay it on every reveal
+        // until an unrelated re-render — strip it after the animation's max lifetime as a backstop.
+        setTimeout(() => fill.classList.remove("pulse"), 1000);
+      }
     }
     bar.append(fill); body.append(text, meta, bar);
     const x = el("button", "x", "✕");
@@ -1819,8 +1855,8 @@ function renderGoals() {
     };
     if (g.unit === "count") {
       const minus = el("button", "step", "−"), plus = el("button", "step", "+");
-      minus.setAttribute("aria-label", "Decrease progress");
-      plus.setAttribute("aria-label", "Increase progress");
+      minus.setAttribute("aria-label", "Decrease progress: " + desc);
+      plus.setAttribute("aria-label", "Increase progress: " + desc);
       minus.disabled = g.current <= 0;
       minus.onclick = () => { g.current = Math.max(0, g.current - 1); save("study.goals", goals); renderGoals(); };
       plus.onclick = () => { g.current++; save("study.goals", goals); renderGoals(); };
@@ -1840,6 +1876,7 @@ $("goalForm").onsubmit = e => {
     due: $("goalDue").value, current: 0, createdAt: Date.now(),
   });
   save("study.goals", goals); $("goalText").value = ""; $("goalDue").value = ""; freshId.goal = id; renderGoals();
+  $("goalText").focus();
 };
 
 /* ---------- history ---------- */
@@ -1976,7 +2013,7 @@ const TOUR = [
   { tab: "timer", sel: ".wkOn", h: "Link your work", p: "Pick a task under the clock. Finished sessions log themselves and tick off its pomodoro count." },
   { tab: "timer", sel: "#setHandleBtn", h: "Sound & music", p: "Tap Settings for rain, deep noise, or YouTube tracks — played audio-only with real controls." },
   { tab: "plan", sub: "today", sel: "#planForm", h: "Today", p: "Add a subject and a pomodoro count. Drag to reorder, check items off as you go." },
-  { tab: "plan", sub: "targets", sel: "#goalForm", h: "Targets", p: "Bigger than today. Pomodoro and minute targets fill up on their own; milestones tick by hand." },
+  { tab: "plan", sub: "targets", sel: "#goalForm", h: "Targets", p: "Pomodoro and minute targets fill up as you focus; milestones move by hand." },
   { tab: "hist", sel: "#histTools", h: "History", p: "Sessions log themselves here. Search, filter by subject, edit notes inline. Back up anytime at the bottom." },
   { tab: "timer", sel: "#hdrRight", h: "Yours to keep", p: "Everything stays in this browser. ◐ swaps themes, ? reopens this guide." },
 ];
