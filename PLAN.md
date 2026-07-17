@@ -155,7 +155,7 @@ Five viewports light+dark; old-backup import; complete tour; timer regression se
 | Pass | Status |
 |---|---|
 | 1 — Plan IA, Targets model, migration | **complete** — implemented by Sonnet (`de0fd8d`), then the user-flagged D12 contradiction corrected by Sonnet (explicit one-shot `freshId`, this commit); verified by independent reviewers + Fable live review both times; acceptance A–J pass under the corrected B/C. Physical-device verification pending (per §7 evidence rules): visual confirmation of the entrance animation on a real painting foreground tab, and reduced-motion behavior on a real device. |
-| 2 — Foundations | not started |
+| 2 — Foundations | **complete** — motion tokens migrated file-wide (verifier: zero missed literals; deliberate literals intact); dock relocated to body level (L1 structurally fixed — verified pinned while `main` held a frozen transform), global + auto-close on tab switch (L2/A3), clearance formula on all tabs (L3: 25.7px overlap → ~0–6px clearance at 320×568, thin margin flagged for Pass 8 device check); `haptic()` per §4 with zero call sites; conditional Vibration toggle; cheer `animationend` + 1s fallback; `touch-action` groundwork. Fable-ratified deviations: ≤520px vertical-rhythm trims (only possible L3 fix), numeric-bucket token migration, ring glow → `--dur-celebrate`. Physical-device pending: real vibration, real animation playback, toggle absence on iOS, real touch scroll over `pan-y` surfaces. |
 | 3 — Today swipes | not started |
 | 4 — Timer motion | not started |
 | 5 — Targets polish | not started |
