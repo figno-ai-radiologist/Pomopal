@@ -1279,9 +1279,11 @@ function autoLog() { // a finished focus round lands in history, credits its tas
   renderPlan(); renderHist(); renderGoals();
 }
 // cheer removal: animationend is authoritative, but reduced-motion users never fire it — a timeout backstop
-// covers that case too; whichever fires first wins (classList.remove is a no-op the second time).
+// covers that case too; whichever fires first wins (classList.remove is a no-op the second time). Pass 4
+// hardening: animationend also clears the pending fallback timer, so a consumed cheer's 1s backstop can
+// never fire late and strip .cheer off a later, unrelated cheer that started in the meantime.
 let cheerT;
-$("ring").addEventListener("animationend", e => { if (e.animationName === "cheer") $("ring").classList.remove("cheer"); });
+$("ring").addEventListener("animationend", e => { if (e.animationName === "cheer") { $("ring").classList.remove("cheer"); clearTimeout(cheerT); } });
 function finishPhase(live = true) {
   if (todayN.d !== todayKey()) todayN = { d: todayKey(), focus: 0, short: 0, long: 0 }; // a session can finish after midnight even though the tab opened yesterday
   if (phase === "focus") { todayN.focus++; autoLog(); } else { todayN[phase]++; }
