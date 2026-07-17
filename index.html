@@ -928,7 +928,7 @@ $("importFile").onchange = async () => {
 const loadPlanSub = () => load("study.planSub", "today") === "targets" ? "targets" : "today"; // validated at every read — an old/garbage value must never leave both subsections hidden
 function showTab(name) {
   const tabs = [...document.querySelectorAll("#tabs [data-tab]")];
-  if (name === "goals") { showPlanSub("targets"); name = "plan"; } // permanent fallback for pre-restructure backups/links (D5)
+  if (name === "goals") { showPlanSub("targets"); name = "plan"; save("study.tab", "plan"); } // permanent fallback for pre-restructure backups/links (D5) — persists the remap so it's consumed once, not re-fired (and re-clobbering planSub) on every boot
   else if (!tabs.some(b => b.dataset.tab === name)) name = "timer";
   tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
   $("tabs").style.setProperty("--navi", Math.max(0, tabs.findIndex(b => b.dataset.tab === name)));
