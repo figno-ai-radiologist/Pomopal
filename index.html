@@ -1192,7 +1192,7 @@ function notify(body) {
   } catch {}
 }
 
-/* ---------- haptics (§4) — semantic wrapper only; call sites land in Pass 6 ---------- */
+/* ---------- haptics (§4) — semantic wrapper; three call sites: checkbox onchange, left-tray release-lock, live focus completion ---------- */
 const HAPTIC = { selection: 10, success: 20, sessionComplete: [30, 50, 30] };
 const PRIORITY = { selection: 0, success: 1, sessionComplete: 2 };
 let lastHaptic = { t: 0, p: -1 };
@@ -1310,7 +1310,8 @@ let cheerT;
 $("ring").addEventListener("animationend", e => { if (e.animationName === "cheer") { $("ring").classList.remove("cheer"); clearTimeout(cheerT); } });
 function finishPhase(live = true) {
   if (todayN.d !== todayKey()) todayN = { d: todayKey(), focus: 0, short: 0, long: 0 }; // a session can finish after midnight even though the tab opened yesterday
-  if (phase === "focus") { todayN.focus++; autoLog(); } else { todayN[phase]++; }
+  const wasFocus = phase === "focus"; // capture before nextPhase reassigns phase — live sessionComplete gates on this, not the phase we're switching to
+  if (wasFocus) { todayN.focus++; autoLog(); } else { todayN[phase]++; }
   save("study.todayN", todayN);
   [phase, cycles] = nextPhase(phase, cycles);
   stop_();
@@ -1318,6 +1319,7 @@ function finishPhase(live = true) {
   if (live) {
     chime();
     notify(phaseLabel[phase] + " — " + phaseMins() + " min");
+    if (wasFocus) haptic("sessionComplete");
     $("ring").classList.add("cheer");
     clearTimeout(cheerT);
     cheerT = setTimeout(() => $("ring").classList.remove("cheer"), 1000);
@@ -1618,7 +1620,7 @@ function renderPlan() {
     };
     const cbHit = el("label", "cbHit"); // padded 40px hit area around the visual 22px control (§5) — also a gesture-excluded start target
     const cb = el("input"); cb.type = "checkbox"; cb.checked = p.done;
-    cb.onchange = () => { p.done = cb.checked; save("study.plan", plan); renderPlan(); };
+    cb.onchange = () => { p.done = cb.checked; save("study.plan", plan); renderPlan(); if (cb.checked) haptic("success"); };
     cbHit.append(cb);
     const s = subjById(p.subjectId);
     const body = el("div", "grow");
@@ -1688,7 +1690,8 @@ $("clearDone").onclick = () => {
 /* ---------- Today row swipe gestures (Pass 3, D6–D8) ----------
    Delegated on #planList itself (survives renderPlan rebuilds — children are replaced, this node isn't).
    Right swipe on an incomplete row = complete (D6); left swipe reveals Edit note | Delete (D7).
-   Zero haptic() calls here — hook points are comment-marked for Pass 6. */
+   haptic("selection") fires only at the release-time tray lock in finishGesture; the completion haptic
+   lives in the checkbox onchange (single shared commit path for both direct taps and committed swipes). */
 planListEl.addEventListener("pointerdown", e => {
   if (e.pointerType === "mouse") return; // desktop keeps HTML5 drag-reorder; gestures are touch/pen only
   if (gesture) return; // one active gesture at a time
@@ -1697,7 +1700,7 @@ planListEl.addEventListener("pointerdown", e => {
   const rowEl = e.target.closest("li");
   const taskId = rowEl?.dataset.id;
   if (!taskId) return;
-  gesture = { pointerId: e.pointerId, taskId, rowEl, startX: e.clientX, startY: e.clientY, claimed: false, dir: null, latched: false, trayW: 0, velocity: 0, lastX: e.clientX, lastT: e.timeStamp };
+  gesture = { pointerId: e.pointerId, taskId, rowEl, startX: e.clientX, startY: e.clientY, claimed: false, dir: null, trayW: 0, velocity: 0, lastX: e.clientX, lastT: e.timeStamp };
 }, { passive: true });
 
 planListEl.addEventListener("pointermove", e => {
@@ -1725,18 +1728,10 @@ planListEl.addEventListener("pointermove", e => {
   let x;
   if (gesture.dir === "right") {
     x = Math.min(140, Math.max(0, dx)); // ponytail: plan gives no numeric cap beyond "0..max" — 140 comfortably clears the 80px commit mark
-    if (!gesture.latched && x >= 80) {
-      gesture.latched = true;
-      /* Pass 6 hook: haptic("success") — right-swipe completion threshold crossed */
-    }
   } else {
     x = Math.min(0, dx);
     if (x < -gesture.trayW) x = -gesture.trayW + (x + gesture.trayW) * 0.35; // resistance beyond the tray
     x = Math.max(x, -(gesture.trayW + 24));
-    if (!gesture.latched && Math.abs(x) >= 80) {
-      gesture.latched = true;
-      /* Pass 6 hook: haptic("selection") — action tray locked open */
-    }
   }
   if (rowMain) rowMain.style.transform = "translateX(" + x + "px)";
   const dt = e.timeStamp - gesture.lastT;
@@ -1752,8 +1747,9 @@ function finishGesture(e) {
   rowEl.classList.remove("gestureLive");
   suppressNextClick = true; // swallow the synthetic click a touch drag leaves behind, once
   const dx = e.clientX - g.startX;
+  // commit decided at release — a swipe is cancellable until the finger lifts (Fable ruling, Pass 6)
   if (g.dir === "right") {
-    const commit = g.latched || (dx >= 48 && g.velocity > 0.5);
+    const commit = dx >= 80 || (dx >= 48 && g.velocity > 0.5);
     if (commit) {
       const cbEl = rowEl.querySelector('input[type=checkbox]');
       if (cbEl && !cbEl.checked) { cbEl.checked = true; cbEl.onchange(); } // same commit path the checkbox uses — renderPlan() resets everything
@@ -1762,12 +1758,13 @@ function finishGesture(e) {
     if (rowMain) rowMain.style.transform = "";
     if (mint) mint.style.visibility = "";
   } else {
-    const commit = g.latched || (-dx >= 48 && -g.velocity > 0.5);
+    const commit = -dx >= 80 || (-dx >= 48 && -g.velocity > 0.5);
     if (commit) {
       if (rowMain) rowMain.style.transform = "translateX(-" + g.trayW + "px)";
       if (tray) tray.style.visibility = ""; // .trayOpen governs visibility from here on
       rowEl.classList.add("trayOpen");
       openTray = g.taskId;
+      haptic("selection"); // release-time lock — never fires on partial drag or tray-action taps
     } else {
       if (rowMain) rowMain.style.transform = "";
       if (tray) tray.style.visibility = "";
