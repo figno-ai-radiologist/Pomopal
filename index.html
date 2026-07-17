@@ -312,7 +312,7 @@
     padding:14px 16px; display:flex; align-items:center; gap:14px;
     box-shadow:0 1px 2px rgba(var(--sh),.04), 0 10px 24px -18px rgba(var(--sh),.22);
   }
-  ul.items li.fresh{animation:rise .3s ease backwards} /* only newly-created rows animate in — see trackFresh() */
+  ul.items li.fresh{animation:rise .3s ease backwards} /* only newly-created rows animate in — see markFresh() */
   ul.items li .grow{flex:1; min-width:0; overflow-wrap:break-word}
   .srow{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
   .detail{color:var(--dim); font-size:15px}
@@ -844,11 +844,11 @@ function emptyState(text) {
   return li;
 }
 
-/* per-list seen-id tracking: only a row whose id hasn't rendered before gets the entrance animation */
-const freshSeen = { plan: new Set(), goal: new Set(), hist: new Set() };
-function trackFresh(li, id, key) {
-  if (freshSeen[key].has(id)) return;
-  freshSeen[key].add(id);
+/* freshness is explicit creation state, never inferred from render history — persisted/imported/auto-logged rows must not animate */
+const freshId = { plan: null, goal: null, hist: null };
+function markFresh(li, key, id) {
+  if (freshId[key] !== id || id == null) return;
+  freshId[key] = null;
   li.classList.add("fresh");
   // animationend can't fire on a row hidden via display:none (e.g. its tab switched away mid-animation)
   // or under prefers-reduced-motion (no animation ever plays) — this timeout is the backstop that still
@@ -1454,7 +1454,7 @@ function renderPlan() {
   if (!plan.length) return ul.append(emptyState("Nothing planned yet — what's first?"));
   plan.forEach((p, i) => {
     const li = el("li", p.done ? "done" : "");
-    trackFresh(li, p.id, "plan");
+    markFresh(li, "plan", p.id);
     li.draggable = true;
     li.ondragstart = () => { dragI = i; li.classList.add("dragging"); };
     li.ondragend = () => {
@@ -1504,8 +1504,9 @@ $("planForm").onsubmit = e => {
   e.preventDefault();
   const subjectId = $("planSubj").value;
   if (!subjectId || subjectId === "__new") return;
-  plan.push({ id: uid(), subjectId, text: $("planText").value.trim(), poms: +$("planPoms").value || 1, donePoms: 0, done: false });
-  save("study.plan", plan); $("planText").value = ""; renderPlan();
+  const id = uid();
+  plan.push({ id, subjectId, text: $("planText").value.trim(), poms: +$("planPoms").value || 1, donePoms: 0, done: false });
+  save("study.plan", plan); $("planText").value = ""; freshId.plan = id; renderPlan();
 };
 $("clearDone").onclick = () => {
   const removed = plan.map((p, i) => [p, i]).filter(([p]) => p.done);
@@ -1533,7 +1534,7 @@ function renderGoals() {
   if (!goals.length) { doneGoals = nowDone; return ul.append(emptyState("No targets yet — aim at something.")); }
   goals.forEach((g, i) => {
     const li = el("li");
-    trackFresh(li, g.id, "goal");
+    markFresh(li, "goal", g.id);
     const cur = goalProgress(g);
     const body = el("div", "grow");
     const text = el("div");
@@ -1581,12 +1582,13 @@ function renderGoals() {
 $("goalForm").onsubmit = e => {
   e.preventDefault();
   const unit = $("goalUnit").value;
+  const id = uid();
   goals.push({
-    id: uid(), text: $("goalText").value.trim(), target: +$("goalTarget").value || 1,
+    id, text: $("goalText").value.trim(), target: +$("goalTarget").value || 1,
     unit, subjectId: unit !== "count" ? ($("goalSubj").value || null) : null,
     due: $("goalDue").value, current: 0, createdAt: Date.now(),
   });
-  save("study.goals", goals); $("goalText").value = ""; $("goalDue").value = ""; renderGoals();
+  save("study.goals", goals); $("goalText").value = ""; $("goalDue").value = ""; freshId.goal = id; renderGoals();
 };
 
 /* ---------- history ---------- */
@@ -1659,7 +1661,7 @@ function renderHist() {
     const dk = new Date(h.at).toDateString();
     if (dk !== lastDay) { lastDay = dk; ul.append(el("li", "daysep", dayLabel(h.at))); }
     const li = el("li");
-    trackFresh(li, h.id, "hist");
+    markFresh(li, "hist", h.id);
     const top = el("div", "top");
     const subj = el("div", "grow srow");
     const dot = el("i", "dot"); dot.style.background = subjById(h.subjectId)?.color ?? "var(--faint)";
@@ -1688,9 +1690,11 @@ $("histForm").onsubmit = e => {
   e.preventDefault();
   const subjectId = $("histSubj").value;
   if (!subjectId || subjectId === "__new") return;
-  hist.unshift({ id: uid(), subjectId, mins: +$("histMins").value || 25, notes: $("histNotes").value.trim(), at: Date.now() });
+  const id = uid();
+  hist.unshift({ id, subjectId, mins: +$("histMins").value || 25, notes: $("histNotes").value.trim(), at: Date.now() });
   save("study.history", hist);
   $("histNotes").value = "";
+  freshId.hist = id;
   renderHist(); renderGoals();
 };
 

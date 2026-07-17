@@ -1,6 +1,6 @@
 # PomoPal — Canonical Implementation Plan (v2.1 — APPROVED)
 
-**Product owner:** Fable 5 (planning, review). **Executor:** Sonnet 5 Ultracode (implementation).
+**Product owner:** Fable 5 Medium (planning, review). **Executor:** Sonnet 5 Ultracode (implementation).
 **Status:** Approved by the user 2026-07-17 with amendments A1–A6 (incorporated below). Pass 1 authorized. Each later pass begins only after Fable review of the previous pass's evidence.
 Sonnet must not edit this file; Fable records status and deviations here.
 
@@ -37,7 +37,7 @@ Deployed build (= repo `aa49d58`) measured at 320×568, 375×667, 390×844, 768�
 | D9 | **Haptics: semantic `haptic(kind)` only** (§4). Toggle rendered only when `'vibrate' in navigator`; independent of Sound; default ON. |
 | D10 | **Ring phase-swipe: rejected** (§8). Pass 4 is timer motion only. |
 | D11 | **Dock:** `#setDock` moves out of `<main>` to document level (fixes L1) and becomes global (fixes L2, deliberate). **A3:** Timer, Plan, and History all get bottom clearance ≥ handle height + `env(safe-area-inset-bottom)` so the handle never covers final content; **the dock closes automatically on top-level tab navigation** (open state does not persist across tabs). |
-| D12 | **List motion (A2):** existing rows render immediately, always. Only **newly created** rows get a brief entrance animation (per-list seen-id tracking; `fresh` class removed on `animationend`). Completing a task animates only that row's state. Returning to Plan or switching Today/Targets never replays row entrances. Today/Targets switching is instant in Pass 1; a restrained container fade (never per-item replay) may be added in Pass 5. |
+| D12 | **List motion (A2, corrected):** existing rows render immediately, always — including on initial page load and after backup import. Only the row created by the **current user action** gets the entrance animation, driven by explicit one-shot creation state (`freshId.plan/goal/hist`), set **only** in the genuine creation handlers (`planForm`/`goalForm`/`histForm` submit). Freshness is never inferred from whether an ID has rendered before. The next render applies `.fresh` to the matching row only, clears the one-shot ID on consumption, and removes the class on `animationend` with a 400ms timeout backstop (reduced-motion / hidden-container safe). Auto-logged history rows and undo-restored rows are NOT marked fresh (Fable decision: they are not the current user's creation gesture on that list). Task-completion visual state uses the existing `done` class and never `.fresh`. Returning to Plan, switching Today/Targets, and post-completion rebuilds replay nothing. Sub-tab switching is instant in Pass 1; a restrained container fade (never per-item replay) may be added in Pass 5. |
 | D13 | Unchanged: motion tokens (§3), no new dependencies, no visual redesign, old-backup compatibility, one pass per commit, Fable review after every pass. |
 
 ## §2 Interaction specifications
@@ -84,6 +84,8 @@ No key renames or data rewrites. `unit:"poms"` added (new rows only); `goalProgr
 
 ## §7 Passes
 
+**Evidence rules:** §9 statuses move to "in progress" only when Sonnet 5 Ultracode actually begins the pass. Where an acceptance item requires a physical touch or vibration-capable device, Sonnet must not claim success without one — it provides emulated/instrumented evidence, clearly labeled, and records physical-device verification as **pending**.
+
 ### Pass 1 — Plan IA, Targets model, compatibility migration ← **AUTHORIZED**
 
 **Files:** `index.html`, `README.md` only. PLAN.md is Fable-owned.
@@ -94,7 +96,7 @@ No key renames or data rewrites. `unit:"poms"` added (new rows only); `goalProgr
 3. Targets vocabulary: h2 "Your **targets**"; hint: "Bigger than today. Pomodoro and minute targets fill up on their own as you focus; milestones tick by hand."; label "Goal"→"Target"; text placeholder → "A steady study week"; empty state `emptyState("No targets yet — aim at something.")` (mascot OK — only one list visible per view now); delete toast "Target deleted".
 4. Targets model: `#goalUnit` options in order — `poms` "Pomodoros" (first = default), `min` "Minutes", `count` "Milestone (manual)". `goalProgress` for `poms`: `hist.filter(h => h.auto && h.at >= (g.createdAt||0) && (!g.subjectId || h.subjectId === g.subjectId)).length`. Subject select (`#goalSubjF`) visible when unit ≠ `count`; submit stores `subjectId` for `poms` and `min`. Meta for poms: `cur + " / " + target + " poms"`; poms/min never show "+N over" (cap bar at 100%, "· done ✦" as today); count keeps existing over-display; count rows additionally get `· milestone` in meta. Target default value 10 stays.
 5. Tab fallback (D5/A5): in `showTab`, raw `"goals"` → set `planSub="targets"` (persisted) and show `plan`; unmatched → `"timer"`. `study.planSub` read via validated load (`today`|`targets` else `today`), written by `showPlanSub`, added to `DATA_KEYS`.
-6. Fresh-row mechanism (D12, applies to `#planList`, `#goalList`, `#histList`): each render marks only ids not yet seen by that list with a `fresh` class; only `.fresh` rows carry the `rise` animation; `animationend` (delegated per list) removes the class so display-toggling subsections never replays it. First paint of a list animates (current behavior preserved); rebuilds animate only new rows; Today/Targets switch and tab return animate nothing.
+6. Fresh-row mechanism (D12, corrected — applies to `#planList`, `#goalList`, `#histList`): explicit one-shot creation state `freshId = { plan, goal, hist }`, set only in the three creation submit handlers immediately before their render call. During render, the row whose id matches consumes the one-shot (gets `.fresh`, id cleared); `.fresh` is removed on `animationend` (delegated per list) with a 400ms timeout backstop. Persisted rows do not animate on initial load; imported rows do not animate; auto-logged and undo-restored rows do not animate; tab return / sub-switch / rebuild replay nothing.
 7. Tour: step 4 `{tab:"plan", sub:"today", sel:"#planForm", h:"Today", ...}`; step 5 `{tab:"plan", sub:"targets", sel:"#goalForm", h:"Targets", p:"Bigger than today. Pomodoro and minute targets fill up on their own; milestones tick by hand."}`; `tourShow` honors an optional `sub` via `showPlanSub(sub, false)` (**no persistence from the tour**); `tourEnd` restores `showPlanSub(load-validated planSub, false)` alongside the saved tab. Step copy for the old planner/goals steps rewritten to Today/Targets vocabulary; History step unchanged.
 8. README: Planner section → "Plan" describing Today + Targets subsections; Goals section content folds in (auto pomodoro/minute targets, milestones tick by hand); "subjects shared across planner, log, and goals" → updated wording; nav description updated. History wording untouched.
 9. Strings sweep: every "Planner"/"plan"/"Goals"/"goal" user-visible string from the rename-surface audit addressed with Plan/Today/Targets vocabulary. Internal identifiers untouched (D4).
@@ -105,8 +107,8 @@ No key renames or data rewrites. `unit:"poms"` added (new rows only); `goalProgr
 
 **Acceptance criteria:**
 - A. Three tabs; pill 1/3 width and correct position on each; no dead nav states.
-- B. Today|Targets switch is instant, persists, and replays zero row entrances; returning to Plan replays zero.
-- C. Adding a task/target animates only the new row; completing a task animates only that row.
+- B. Persisted rows never animate on initial load; imported rows never animate as newly created; Today|Targets switch (instant, persisted) and returning to Plan replay zero entrances; rebuilding a list after a completion replays zero.
+- C. Only the row created by the current user action (task add / target add / manual log) receives the entrance, exactly once; auto-logged and undo-restored rows do not; task-completion state uses the existing `done` class and never `.fresh`.
 - D. Stored `"goals"` (boot, import-reload, tour-end) lands Plan/Targets; unknown tab → Timer; `plan`/`hist`/`timer` unaffected.
 - E. `study.planSub` exports/imports, validates (garbage → `today`).
 - F. New Pomodoros target auto-progresses after a live focus completion; Minutes target unchanged; legacy count row keeps value, ticks, `· milestone` tag; subject select hidden only for Milestone.
@@ -144,12 +146,13 @@ Five viewports light+dark; old-backup import; complete tour; timer regression se
 - A1–A6 amendments incorporated 2026-07-17 (haptic de-duplication; new-row-only entrances; dock clearance + auto-close; "Edit note" label; `study.planSub` in DATA_KEYS with validation; qualitative layout criteria replacing pixel-height targets).
 - **Pass 1 corrections (Fable-decided during review):** (1) `trackFresh` gained a 400ms `setTimeout` backstop removing `.fresh` — `animationend` cannot fire on rows hidden mid-animation or under reduced motion, and a stale `.fresh` would replay the entrance on re-show (verifier-caught race against acceptance B). (2) The Targets form's numeric field relabeled "Target" → **"Amount"** — the plan's literal string mapping had produced two adjacent "Target" labels (implementer-flagged).
 - **Pass 1 verification notes:** the boot-time re-save of migrated arrays (pre-existing, idempotent) is accepted as-is; ARIA tablist roles on the Plan segmented control are deferred to Pass 7 as planned; empty-state rows no longer animate (consistent with D12 — only new rows animate).
+- **D12 contradiction correction (user-directed, blocking):** the initially shipped seen-ID freshness inference animated ALL rows on first paint (persisted and imported rows included), violating D12's "existing rows always render immediately." Replaced with explicit one-shot creation state (`freshId.plan/goal/hist`) set only in the three creation submit handlers; auto-logged and undo-restored rows deliberately not marked (Fable decision). Acceptance B/C rewritten to match. Metadata corrections applied in the same revision: planning model named "Fable 5 Medium"; §9 status semantics ("in progress" only when Sonnet actually begins); physical-device evidence rule added to §7.
 
 ## §9 Completion status
 
 | Pass | Status |
 |---|---|
-| 1 — Plan IA, Targets model, migration | **complete** — implemented by Sonnet, verified by 3 independent reviewers + Fable live review; acceptance A–J all pass (B via the trackFresh timeout correction); committed as the Pass 1 commit |
+| 1 — Plan IA, Targets model, migration | **complete** — implemented by Sonnet (`de0fd8d`), then the user-flagged D12 contradiction corrected by Sonnet (explicit one-shot `freshId`, this commit); verified by independent reviewers + Fable live review both times; acceptance A–J pass under the corrected B/C. Physical-device verification pending (per §7 evidence rules): visual confirmation of the entrance animation on a real painting foreground tab, and reduced-motion behavior on a real device. |
 | 2 — Foundations | not started |
 | 3 — Today swipes | not started |
 | 4 — Timer motion | not started |
